@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMP | Heartfulness Admin</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#064E3B',    // Deep Emerald
+                        surface: '#FFFFFF',
+                        background: '#FAFAF9', // Stone 50
+                        textMain: '#1C1917',   // Stone 900
+                        textMuted: '#78716C',  // Stone 500
+                        danger: '#E11D48'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body { background-color: #FAFAF9; font-family: 'Inter', sans-serif; }
+        .nav-item.active { background: #ECFDF5; color: #064E3B; border-right: 3px solid #059669; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); }
+        /* Transitions */
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-textMain h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-surface border-r border-gray-200 flex flex-col z-20 hidden md:flex">
+        <div class="h-20 flex items-center px-6 border-b border-gray-100 gap-3 text-primary font-bold text-xl">
+            <i data-feather="sun"></i> LAMP Admin
+        </div>
+        <nav class="flex-1 py-6 space-y-1 overflow-y-auto" id="nav-menu">
+            <!-- Nav Injected by JS -->
+        </nav>
+        <div class="p-4 border-t border-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">AD</div>
+            <div><p class="text-sm font-medium">Administrator</p><p class="text-xs text-textMuted">Online</p></div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 flex flex-col relative">
+        <header class="h-20 bg-surface border-b border-gray-200 flex items-center justify-between px-8 shadow-sm z-10">
+            <div>
+                <h1 id="page-title" class="text-xl font-bold text-gray-800">Loading...</h1>
+                <p id="page-subtitle" class="text-xs text-gray-400">Please wait</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Supabase
+                </span>
+            </div>
+        </header>
+
+        <main id="app-root" class="flex-1 overflow-y-auto p-8 relative">
+            <!-- Initial Loading State -->
+            <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                <div class="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
+                <p>Connecting to System...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL OVERLAY -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 transform transition-all scale-95 opacity-0">
+            <!-- Dynamic Modal Content -->
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = 'https://gmrqcoisfoghljwqiuys.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV'; // Public Key provided
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- GLOBAL APP OBJECT ---
+        const App = {
+            state: {
+                users: [],
+                tasks: [],
+                habits: [],
+                assignments: [],
+                currentView: 'dashboard',
+                graduateThreshold: 75 // Default 75% consistency
+            },
+
+            // 1. INITIALIZE
+            init: async () => {
+                try {
+                    App.renderNav();
+                    await App.fetchData();
+                    App.router('dashboard');
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById('app-root').innerHTML = `<div class="text-red-500 p-10">Error initializing: ${e.message}</div>`;
+                }
+            },
+
+            // 2. DATA FETCHING
+            fetchData: async () => {
+                document.getElementById('page-subtitle').innerText = "Syncing data...";
+                
+                const [users, tasks, habits, assignments] = await Promise.all([
+                    supabaseClient.from('Users').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('tasks').select('*'),
+                    supabaseClient.from('habits').select('*'),
+                    supabaseClient.from('chaperone_protege').select('*')
+                ]);
+
+                App.state.users = users.data || [];
+                App.state.tasks = tasks.data || [];
+                App.state.habits = habits.data || [];
+                App.state.assignments = assignments.data || [];
+                
+                document.getElementById('page-subtitle').innerText = "Data synced";
+            },
+
+            // 3. NAVIGATION & ROUTING
+            renderNav: () => {
+                const items = [
+                    { id: 'dashboard', icon: 'grid', label: 'Dashboard' },
+                    { id: 'users', icon: 'users', label: 'Users' },
+                    { id: 'assignments', icon: 'link', label: 'Assignments' },
+                    { id: 'tasks', icon: 'check-square', label: 'Tasks' },
+                    { id: 'habits', icon: 'activity', label: 'Habits' },
+                    { id: 'graduates', icon: 'award', label: 'Graduates' }
+                ];
+                
+                const navHtml = items.map(item => `
+                    <button onclick="App.router('${item.id}')" id="nav-${item.id}" class="nav-item w-full flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i data-feather="${item.icon}" class="w-4 h-4"></i> ${item.label}
+                    </button>
+                `).join('');
+                
+                document.getElementById('nav-menu').innerHTML = navHtml;
+            },
+
+            router: (view) => {
+                App.state.currentView = view;
+                
+                // Update Sidebar
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.getElementById(`nav-${view}`).classList.add('active');
+
+                // Render Content
+                const root = document.getElementById('app-root');
+                root.innerHTML = ''; // Clear current
+                root.classList.remove('fade-in');
+                void root.offsetWidth; // Trigger reflow for animation
+                root.classList.add('fade-in');
+
+                if (view === 'dashboard') App.renderDashboard(root);
+                else if (view === 'users') App.renderUsers(root);
+                else if (view === 'assignments') App.renderAssignments(root);
+                else if (view === 'tasks') App.renderTasks(root);
+                else if (view === 'habits') App.renderHabits(root);
+                else if (view === 'graduates') App.renderGraduates(root);
+
+                feather.replace();
+            },
+
+            // 4. VIEWS
+
+            renderDashboard: (root) => {
+                document.getElementById('page-title').innerText = "Dashboard Overview";
+                const { users, tasks } = App.state;
+                
+                const stats = [
+                    { label: 'Total Users', val: users.length, color: 'blue' },
+                    { label: 'Protégés', val: users.filter(u=>u.role==='protege').length, color: 'emerald' },
+                    { label: 'Chaperones', val: users.filter(u=>u.role==='chaperone').length, color: 'amber' },
+                    { label: 'Tasks', val: tasks.length, color: 'purple' }
+                ];
+
+                const cards = stats.map(s => `
+                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">${s.label}</div>
+                        <div class="text-3xl font-light text-gray-800 mt-2">${s.val}</div>
+                        <div class="w-full h-1 bg-${s.color}-100 mt-4 rounded-full"><div class="h-1 bg-${s.color}-500 rounded-full" style="width: 70%"></div></div>
+                    </div>
+                `).join('');
+
+                root.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">${cards}</div>
+                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
+                        <h3 class="font-bold text-gray-700 mb-4">Quick Actions</h3>
+                        <div class="flex gap-4">
+                            <button onclick="App.modals.openUser()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">Add User</button>
+                            <button onclick="App.modals.openTask()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Create Task</button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderUsers: (root) => {
+                document.getElementById('page-title').innerText = "User Management";
+                
+                const rows = App.state.users.map(u => `
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                        <td class="p-4">
+                            <div class="font-medium text-gray-900">${u.Name || 'Unknown'}</div>
+                            <div class="text-xs text-gray-400">${u.email || 'No Email'}</div>
+                        </td>
+                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold uppercase ${u.role==='admin'?'bg-red-100 text-red-600':u.role==='chaperone'?'bg-amber-100 text-amber-600':'bg-blue-100 text-blue-600'}">${u.role||'None'}</span></td>
+                        <td class="p-4 text-sm text-gray-500">${u.location || '-'}</td>
+                        <td class="p-4 flex gap-2 justify-end">
+                            <button onclick="App.modals.openUser('${u.id}')" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Edit</button>
+                            <button onclick="App.actions.deleteUser('${u.id}')" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                root.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 flex justify-between bg-gray-50">
+                            <h3 class="font-semibold text-gray-700">All Participants</h3>
+                            <button onclick="App.modals.openUser()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-700">New User</button>
+                        </div>
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Name</th><th class="p-4">Role</th><th class="p-4">Location</th><th class="p-4 text-right">Actions</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            renderAssignments: (root) => {
+                document.getElementById('page-title').innerText = "Chaperone Assignments";
+                
+                const rows = App.state.assignments.map(a => {
+                    const chap = App.state.users.find(u => u.id === a.chaperone_id);
+                    const prot = App.state.users.find(u => u.id === a.protege_id);
+                    if(!chap || !prot) return ''; // Skip if users deleted
+                    return `
+                        <tr class="border-b border-gray-50">
+                            <td class="p-4 font-medium text-amber-700">${chap.Name}</td>
+                            <td class="p-4 font-medium text-blue-700">${prot.Name}</td>
+                            <td class="p-4 text-right">
+                                <button onclick="App.actions.deleteAssignment('${a.id}')" class="text-red-400 hover:text-red-600"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                root.innerHTML = `
+                    <div class="mb-6 bg-white p-4 rounded-xl border border-gray-100 flex gap-4 items-end shadow-sm">
+                        <div class="flex-1">
+                            <label class="text-xs font-bold text-gray-400">Select Chaperone</label>
+                            <select id="assign-chap" class="w-full p-2 border rounded mt-1 bg-gray-50 text-sm">
+                                <option value="">-- Choose --</option>
+                                ${App.state.users.filter(u=>u.role==='chaperone').map(u=>`<option value="${u.id}">${u.Name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-xs font-bold text-gray-400">Select Protégé</label>
+                            <select id="assign-prot" class="w-full p-2 border rounded mt-1 bg-gray-50 text-sm">
+                                <option value="">-- Choose --</option>
+                                ${App.state.users.filter(u=>u.role==='protege').map(u=>`<option value="${u.id}">${u.Name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button onclick="App.actions.createAssignment()" class="px-4 py-2 bg-emerald-600 text-white rounded text-sm font-medium">Link Users</button>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Chaperone</th><th class="p-4">Protégé</th><th class="p-4 text-right">Remove</th></tr></thead>
+                            <tbody>${rows || '<tr><td colspan="3" class="p-6 text-center text-gray-400">No assignments yet.</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            renderTasks: (root) => {
+                document.getElementById('page-title').innerText = "Task Library";
+                const rows = App.state.tasks.map(t => `
+                    <tr class="border-b border-gray-50">
+                        <td class="p-4 font-medium">${t.name}</td>
+                        <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs uppercase">${t.type}</span></td>
+                        <td class="p-4 text-sm text-gray-500">${t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</td>
+                        <td class="p-4 text-right"><button onclick="App.actions.deleteTask('${t.id}')" class="text-red-500 text-xs">Delete</button></td>
+                    </tr>
+                `).join('');
+
+                root.innerHTML = `
+                    <div class="flex justify-end mb-4">
+                        <button onclick="App.modals.openTask()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-blue-700">Create Task</button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Task</th><th class="p-4">Type</th><th class="p-4">Deadline</th><th class="p-4 text-right">Action</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            renderHabits: (root) => {
+                document.getElementById('page-title').innerText = "Habit Tracking";
+                 const rows = App.state.habits.map(h => `
+                    <tr class="border-b border-gray-50">
+                        <td class="p-4 font-medium">${h.name}</td>
+                        <td class="p-4 text-sm text-gray-500">${h.description || ''}</td>
+                        <td class="p-4 text-right"><button onclick="App.actions.deleteHabit('${h.id}')" class="text-red-500 text-xs">Delete</button></td>
+                    </tr>
+                `).join('');
+
+                root.innerHTML = `
+                    <div class="flex justify-end mb-4">
+                        <button onclick="App.modals.openHabit()" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-amber-700">Create Habit</button>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Habit Name</th><th class="p-4">Description</th><th class="p-4 text-right">Action</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            renderGraduates: (root) => {
+                document.getElementById('page-title').innerText = "Program Graduates";
+                
+                // Filtering Logic
+                // 1. User must be protege
+                // 2. Placeholder: 'All tasks' assumed done for visual demo if they have completed >= 1 task (real logic needs assignment check)
+                // 3. Streak must be >= threshold
+                
+                const threshold = App.state.graduateThreshold;
+                
+                const graduates = App.state.users.filter(u => {
+                    if (u.role !== 'protege') return false;
+                    const streak = u.currentStreak || 0;
+                    // Simple calculation: streak / 100 * 100 for percentage simulation, usually this requires log count
+                    // We will just use 'streak' as the metric for now
+                    return streak >= threshold; 
+                });
+
+                const rows = graduates.map(u => `
+                    <tr class="border-b border-gray-50">
+                        <td class="p-4 font-medium text-gray-900">${u.Name}</td>
+                        <td class="p-4 text-center"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">QUALIFIED</span></td>
+                        <td class="p-4 text-center text-lg font-bold text-gray-700">${u.currentStreak || 0}</td>
+                        <td class="p-4 text-center text-gray-500">${u.level_of_heartfulness || 0}</td>
+                    </tr>
+                `).join('');
+
+                root.innerHTML = `
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 mb-6 flex items-center gap-4 shadow-sm">
+                        <i data-feather="filter" class="text-gray-400"></i>
+                        <span class="text-sm font-bold text-gray-600">Min Consistency Metric:</span>
+                        <input type="number" id="grad-input" value="${threshold}" class="border rounded p-2 w-20 text-center" onchange="App.actions.updateThreshold(this.value)">
+                        <span class="text-sm text-gray-400"> (Days/Points)</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Name</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Consistency</th><th class="p-4 text-center">Level</th></tr></thead>
+                            <tbody>${rows || '<tr><td colspan="4" class="p-8 text-center text-gray-400">No graduates meet this criteria.</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            // 5. MODALS & ACTIONS
+            modals: {
+                close: () => {
+                    const el = document.getElementById('modal-overlay');
+                    const content = document.getElementById('modal-content');
+                    content.classList.remove('scale-100', 'opacity-100');
+                    content.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => el.classList.add('hidden'), 200);
+                },
+                open: (html) => {
+                    const el = document.getElementById('modal-overlay');
+                    const content = document.getElementById('modal-content');
+                    content.innerHTML = html;
+                    el.classList.remove('hidden');
+                    // Animation
+                    setTimeout(() => {
+                        content.classList.remove('scale-95', 'opacity-0');
+                        content.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                },
+                openUser: (id = null) => {
+                    const user = id ? App.state.users.find(u => u.id === id) : null;
+                    App.modals.open(`
+                        <div class="p-6">
+                            <h2 class="text-lg font-bold mb-4">${user ? 'Edit' : 'Create'} User</h2>
+                            <form onsubmit="App.actions.saveUser(event, '${id || ''}')" class="space-y-4">
+                                <input class="w-full border p-2 rounded" name="Name" placeholder="Full Name" value="${user?.Name || ''}" required>
+                                <input class="w-full border p-2 rounded" name="email" placeholder="Email" value="${user?.email || ''}" required>
+                                <select class="w-full border p-2 rounded" name="role">
+                                    <option value="protege" ${user?.role==='protege'?'selected':''}>Protégé</option>
+                                    <option value="chaperone" ${user?.role==='chaperone'?'selected':''}>Chaperone</option>
+                                    <option value="admin" ${user?.role==='admin'?'selected':''}>Admin</option>
+                                </select>
+                                <input class="w-full border p-2 rounded" name="location" placeholder="Location" value="${user?.location || ''}">
+                                <div class="flex justify-end gap-2 pt-4">
+                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    `);
+                },
+                openTask: () => {
+                    App.modals.open(`
+                        <div class="p-6">
+                            <h2 class="text-lg font-bold mb-4">New Task</h2>
+                            <form onsubmit="App.actions.saveTask(event)" class="space-y-4">
+                                <input class="w-full border p-2 rounded" name="name" placeholder="Task Name" required>
+                                <select class="w-full border p-2 rounded" name="type">
+                                    <option value="knowledge">Knowledge</option>
+                                    <option value="experimental">Experimental</option>
+                                </select>
+                                <input type="date" class="w-full border p-2 rounded" name="deadline">
+                                <div class="flex justify-end gap-2 pt-4">
+                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Create</button>
+                                </div>
+                            </form>
+                        </div>
+                    `);
+                },
+                openHabit: () => {
+                     App.modals.open(`
+                        <div class="p-6">
+                            <h2 class="text-lg font-bold mb-4">New Habit</h2>
+                            <form onsubmit="App.actions.saveHabit(event)" class="space-y-4">
+                                <input class="w-full border p-2 rounded" name="name" placeholder="Habit Name" required>
+                                <textarea class="w-full border p-2 rounded" name="description" placeholder="Description"></textarea>
+                                <div class="flex justify-end gap-2 pt-4">
+                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded">Create</button>
+                                </div>
+                            </form>
+                        </div>
+                    `);
+                }
+            },
+
+            actions: {
+                saveUser: async (e, id) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData.entries());
+                    
+                    if(id) {
+                        await supabaseClient.from('Users').update(data).eq('id', id);
+                    } else {
+                        await supabaseClient.from('Users').insert([data]);
+                    }
+                    App.modals.close();
+                    await App.fetchData();
+                    App.router('users');
+                },
+                deleteUser: async (id) => {
+                    if(confirm("Delete this user?")) {
+                        await supabaseClient.from('Users').delete().eq('id', id);
+                        await App.fetchData();
+                        App.router('users');
+                    }
+                },
+                createAssignment: async () => {
+                    const chapId = document.getElementById('assign-chap').value;
+                    const protId = document.getElementById('assign-prot').value;
+                    if(!chapId || !protId) return alert("Select both users");
+
+                    await supabaseClient.from('chaperone_protege').insert([{
+                        chaperone_id: chapId,
+                        protege_id: protId
+                    }]);
+                    await App.fetchData();
+                    App.router('assignments');
+                },
+                deleteAssignment: async (id) => {
+                    if(confirm("Remove this link?")) {
+                        await supabaseClient.from('chaperone_protege').delete().eq('id', id);
+                        await App.fetchData();
+                        App.router('assignments');
+                    }
+                },
+                saveTask: async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData.entries());
+                    if(!data.deadline) delete data.deadline; // Handle empty date
+                    
+                    await supabaseClient.from('tasks').insert([data]);
+                    App.modals.close();
+                    await App.fetchData();
+                    App.router('tasks');
+                },
+                deleteTask: async (id) => {
+                    if(confirm("Delete task?")) {
+                        await supabaseClient.from('tasks').delete().eq('id', id);
+                        await App.fetchData();
+                        App.router('tasks');
+                    }
+                },
+                saveHabit: async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData.entries());
+                    await supabaseClient.from('habits').insert([data]);
+                    App.modals.close();
+                    await App.fetchData();
+                    App.router('habits');
+                },
+                deleteHabit: async (id) => {
+                    if(confirm("Delete habit?")) {
+                        await supabaseClient.from('habits').delete().eq('id', id);
+                        await App.fetchData();
+                        App.router('habits');
+                    }
+                },
+                updateThreshold: (val) => {
+                    App.state.graduateThreshold = parseInt(val);
+                    App.router('graduates');
+                }
+            }
+        };
+
+        // Start App
+        document.addEventListener('DOMContentLoaded', App.init);
+
+    </script>
+</body>
+</html>
