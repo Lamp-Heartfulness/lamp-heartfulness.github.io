@@ -1,549 +1,2031 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAMP | Heartfulness Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heartfulness L.A.M.P Admin Dashboard</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: 142 35% 45%;
+      --primary-light: 142 30% 90%;
+      --background: 45 30% 96%;
+      --foreground: 142 25% 20%;
+      --card: 0 0% 100%;
+      --muted: 142 15% 85%;
+      --muted-foreground: 142 15% 45%;
+      --accent: 142 25% 88%;
+      --border: 142 20% 85%;
+      --success: 142 60% 40%;
+      --warning: 38 92% 50%;
+      --danger: 0 84% 60%;
+      --info: 199 89% 48%;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#064E3B',    // Deep Emerald
-                        surface: '#FFFFFF',
-                        background: '#FAFAF9', // Stone 50
-                        textMain: '#1C1917',   // Stone 900
-                        textMuted: '#78716C',  // Stone 500
-                        danger: '#E11D48'
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      min-height: 100vh;
+    }
 
-    <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; }
 
-    <style>
-        body { background-color: #FAFAF9; font-family: 'Inter', sans-serif; }
-        .nav-item.active { background: #ECFDF5; color: #064E3B; border-right: 3px solid #059669; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); }
-        /* Transitions */
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+    .app-container { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: hsl(var(--card));
+      border-right: 1px solid hsl(var(--border));
+      padding: 1.5rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: hsl(var(--primary));
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.75rem;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 2rem;
+    }
+
+    .nav-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      color: hsl(var(--foreground));
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+    }
+
+    .nav-link:hover { background: hsl(var(--accent)); }
+    .nav-link.active { background: hsl(var(--primary)); color: white; }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+    }
+
+    /* Cards */
+    .card {
+      background: hsl(var(--card));
+      border-radius: 0.75rem;
+      border: 1px solid hsl(var(--border));
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: hsl(var(--card));
+      border-radius: 0.75rem;
+      border: 1px solid hsl(var(--border));
+      padding: 1.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: hsl(var(--muted-foreground));
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: hsl(var(--primary));
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: hsl(var(--primary));
+      color: white;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      background: hsl(var(--accent));
+      color: hsl(var(--foreground));
+    }
+    .btn-secondary:hover { background: hsl(var(--muted)); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid hsl(var(--border));
+      color: hsl(var(--foreground));
+    }
+    .btn-outline:hover { background: hsl(var(--accent)); }
+
+    .btn-danger {
+      background: hsl(var(--danger));
+      color: white;
+    }
+
+    .btn-success {
+      background: hsl(var(--success));
+      color: white;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+
+    th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: hsl(var(--muted-foreground));
+      font-weight: 600;
+      background: hsl(var(--accent) / 0.3);
+    }
+
+    tr:hover { background: hsl(var(--accent) / 0.3); }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: hsl(var(--foreground));
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: hsl(var(--card));
+      color: hsl(var(--foreground));
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: hsl(var(--primary));
+    }
+
+    .form-textarea { resize: vertical; min-height: 100px; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-admin { background: hsl(var(--primary-light)); color: hsl(var(--primary)); }
+    .badge-chaperone { background: hsl(199 89% 90%); color: hsl(199 89% 35%); }
+    .badge-protege { background: hsl(38 92% 90%); color: hsl(38 70% 35%); }
+    .badge-success { background: hsl(142 60% 90%); color: hsl(var(--success)); }
+    .badge-warning { background: hsl(38 92% 90%); color: hsl(var(--warning)); }
+    .badge-danger { background: hsl(0 84% 92%); color: hsl(var(--danger)); }
+    .badge-info { background: hsl(199 89% 90%); color: hsl(var(--info)); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: hsl(var(--card));
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: hsl(var(--muted-foreground));
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Charts */
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .alert-success {
+      background: hsl(142 60% 90%);
+      color: hsl(var(--success));
+      border: 1px solid hsl(var(--success) / 0.3);
+    }
+
+    .alert-error {
+      background: hsl(0 84% 92%);
+      color: hsl(var(--danger));
+      border: 1px solid hsl(var(--danger) / 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid hsl(var(--border));
+      border-top-color: hsl(var(--primary));
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid hsl(var(--border));
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: hsl(var(--muted-foreground));
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: hsl(var(--primary));
+      border-bottom-color: hsl(var(--primary));
+    }
+
+    .tab:hover { color: hsl(var(--foreground)); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    /* Checkbox */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+    }
+
+    .checkbox-label:hover {
+      background: hsl(var(--accent) / 0.5);
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      cursor: pointer;
+    }
+
+    /* Achievement card */
+    .achievement-card {
+      background: linear-gradient(135deg, hsl(var(--primary-light)), hsl(var(--card)));
+      border: 1px solid hsl(var(--primary) / 0.2);
+    }
+
+    .achievement-icon {
+      width: 48px;
+      height: 48px;
+      background: hsl(var(--primary));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+  </style>
 </head>
-<body class="text-textMain h-screen flex overflow-hidden">
+<body>
+  <div id="root"></div>
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-surface border-r border-gray-200 flex flex-col z-20 hidden md:flex">
-        <div class="h-20 flex items-center px-6 border-b border-gray-100 gap-3 text-primary font-bold text-xl">
-            <i data-feather="sun"></i> LAMP Admin
-        </div>
-        <nav class="flex-1 py-6 space-y-1 overflow-y-auto" id="nav-menu">
-            <!-- Nav Injected by JS -->
-        </nav>
-        <div class="p-4 border-t border-gray-100 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">AD</div>
-            <div><p class="text-sm font-medium">Administrator</p><p class="text-xs text-textMuted">Online</p></div>
-        </div>
-    </aside>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 flex flex-col relative">
-        <header class="h-20 bg-surface border-b border-gray-200 flex items-center justify-between px-8 shadow-sm z-10">
-            <div>
-                <h1 id="page-title" class="text-xl font-bold text-gray-800">Loading...</h1>
-                <p id="page-subtitle" class="text-xs text-gray-400">Please wait</p>
+    // Supabase Client
+    const supabaseUrl = 'https://gmrqcoisfoghljwqiuys.supabase.co';
+    const supabaseKey = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Icons as SVG components
+    const Icons = {
+      Home: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+      Users: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+      Tasks: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+      Heart: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+      MessageCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>,
+      BarChart: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>,
+      Settings: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      Link: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+      Award: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
+      Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+      Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+      X: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      Search: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+      Filter: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+      Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>,
+      Trophy: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+    };
+
+    // Data Hooks
+    function useSupabaseData() {
+      const [users, setUsers] = useState([]);
+      const [tasks, setTasks] = useState([]);
+      const [taskAssignments, setTaskAssignments] = useState([]);
+      const [habits, setHabits] = useState([]);
+      const [habitLogs, setHabitLogs] = useState([]);
+      const [habitStreaks, setHabitStreaks] = useState([]);
+      const [questions, setQuestions] = useState([]);
+      const [chaperoneProtege, setChaperoneProtege] = useState([]);
+      const [habitAssignments, setHabitAssignments] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+
+      const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+          const [usersRes, tasksRes, taskAssignRes, habitsRes, habitLogsRes, habitStreaksRes, questionsRes, cpRes, haRes] = await Promise.all([
+            supabase.from('Users').select('*'),
+            supabase.from('tasks').select('*'),
+            supabase.from('task_assignments').select('*'),
+            supabase.from('habits').select('*'),
+            supabase.from('habit_logs').select('*'),
+            supabase.from('habit_streaks').select('*'),
+            supabase.from('questions').select('*'),
+            supabase.from('chaperone_protege').select('*'),
+            supabase.from('habit_assignments').select('*'),
+          ]);
+
+          if (usersRes.data) setUsers(usersRes.data);
+          if (tasksRes.data) setTasks(tasksRes.data);
+          if (taskAssignRes.data) setTaskAssignments(taskAssignRes.data);
+          if (habitsRes.data) setHabits(habitsRes.data);
+          if (habitLogsRes.data) setHabitLogs(habitLogsRes.data);
+          if (habitStreaksRes.data) setHabitStreaks(habitStreaksRes.data);
+          if (questionsRes.data) setQuestions(questionsRes.data);
+          if (cpRes.data) setChaperoneProtege(cpRes.data);
+          if (haRes.data) setHabitAssignments(haRes.data);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      }, []);
+
+      useEffect(() => { fetchData(); }, [fetchData]);
+
+      return { 
+        users, tasks, taskAssignments, habits, habitLogs, habitStreaks, 
+        questions, chaperoneProtege, habitAssignments, loading, error, refetch: fetchData 
+      };
+    }
+
+    // CSV Export Helper
+    function exportToCSV(data, filename) {
+      if (!data.length) return alert('No data to export');
+      const headers = Object.keys(data[0]);
+      const csv = [
+        headers.join(','),
+        ...data.map(row => headers.map(h => {
+          let val = row[h];
+          if (val === null || val === undefined) val = '';
+          if (Array.isArray(val)) val = val.join('; ');
+          if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
+            val = '"' + val.replace(/"/g, '""') + '"';
+          }
+          return val;
+        }).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Modal Component
+    function Modal({ isOpen, onClose, title, children }) {
+      if (!isOpen) return null;
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{title}</h3>
+              <button className="modal-close" onClick={onClose}><Icons.X /></button>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Supabase
-                </span>
-            </div>
-        </header>
-
-        <main id="app-root" class="flex-1 overflow-y-auto p-8 relative">
-            <!-- Initial Loading State -->
-            <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                <div class="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
-                <p>Connecting to System...</p>
-            </div>
-        </main>
-    </div>
-
-    <!-- MODAL OVERLAY -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
-        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 transform transition-all scale-95 opacity-0">
-            <!-- Dynamic Modal Content -->
+            {children}
+          </div>
         </div>
-    </div>
+      );
+    }
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // --- CONFIGURATION ---
-        const SUPABASE_URL = 'https://gmrqcoisfoghljwqiuys.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV'; // Public Key provided
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Alert Component
+    function Alert({ type, message, onClose }) {
+      if (!message) return null;
+      return (
+        <div className={`alert alert-${type}`}>
+          {message}
+          {onClose && <button onClick={onClose} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer' }}><Icons.X /></button>}
+        </div>
+      );
+    }
 
-        // --- GLOBAL APP OBJECT ---
-        const App = {
-            state: {
-                users: [],
-                tasks: [],
-                habits: [],
-                assignments: [],
-                currentView: 'dashboard',
-                graduateThreshold: 75 // Default 75% consistency
+    // Badge Component
+    function RoleBadge({ role }) {
+      const cls = role === 'admin' ? 'badge-admin' : role === 'chaperone' ? 'badge-chaperone' : 'badge-protege';
+      return <span className={`badge ${cls}`}>{role || 'N/A'}</span>;
+    }
+
+    function StatusBadge({ status }) {
+      const cls = status === 'completed' ? 'badge-success' : status === 'in_progress' ? 'badge-info' : status === 'dismissed' ? 'badge-danger' : 'badge-warning';
+      return <span className={`badge ${cls}`}>{status}</span>;
+    }
+
+    // Sidebar Navigation
+    function Sidebar({ currentPage, setPage }) {
+      const navItems = [
+        { id: 'dashboard', label: 'Dashboard', icon: Icons.Home },
+        { id: 'users', label: 'User Management', icon: Icons.Users },
+        { id: 'assignments', label: 'Chaperone Assignment', icon: Icons.Link },
+        { id: 'tasks', label: 'Task Management', icon: Icons.Tasks },
+        { id: 'habits', label: 'Habit Tracking', icon: Icons.Heart },
+        { id: 'qa', label: 'Q&A Moderation', icon: Icons.MessageCircle },
+        { id: 'achievements', label: 'Achievements', icon: Icons.Award },
+        { id: 'analytics', label: 'Analytics & Export', icon: Icons.BarChart },
+        { id: 'settings', label: 'Settings', icon: Icons.Settings },
+      ];
+
+      return (
+        <aside className="sidebar">
+          <h1 className="sidebar-logo">Heartfulness</h1>
+          <p className="sidebar-subtitle">L.A.M.P Admin Dashboard</p>
+          
+          <nav>
+            <div className="nav-section">
+              <p className="nav-section-title">Main Menu</p>
+              {navItems.slice(0, 6).map(item => (
+                <div 
+                  key={item.id} 
+                  className={`nav-link ${currentPage === item.id ? 'active' : ''}`}
+                  onClick={() => setPage(item.id)}
+                >
+                  <item.icon />
+                  {item.label}
+                </div>
+              ))}
+            </div>
+            <div className="nav-section">
+              <p className="nav-section-title">Reports</p>
+              {navItems.slice(6).map(item => (
+                <div 
+                  key={item.id} 
+                  className={`nav-link ${currentPage === item.id ? 'active' : ''}`}
+                  onClick={() => setPage(item.id)}
+                >
+                  <item.icon />
+                  {item.label}
+                </div>
+              ))}
+            </div>
+          </nav>
+        </aside>
+      );
+    }
+
+    // Dashboard Page
+    function DashboardPage({ data }) {
+      const { users, tasks, taskAssignments, habitStreaks, loading } = data;
+
+      const stats = useMemo(() => {
+        const proteges = users.filter(u => u.role === 'protege').length;
+        const chaperones = users.filter(u => u.role === 'chaperone').length;
+        const activeTasks = taskAssignments.filter(t => t.status === 'assigned' || t.status === 'in_progress').length;
+        const avgStreak = habitStreaks.length ? Math.round(habitStreaks.reduce((a, s) => a + (s.current_streak || 0), 0) / habitStreaks.length) : 0;
+        return { proteges, chaperones, activeTasks, avgStreak };
+      }, [users, taskAssignments, habitStreaks]);
+
+      useEffect(() => {
+        if (loading) return;
+        // Task status chart
+        const statusCounts = { assigned: 0, in_progress: 0, completed: 0, dismissed: 0 };
+        taskAssignments.forEach(t => { if (statusCounts[t.status] !== undefined) statusCounts[t.status]++; });
+        
+        const ctx1 = document.getElementById('taskChart');
+        if (ctx1) {
+          new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+              labels: ['Assigned', 'In Progress', 'Completed', 'Dismissed'],
+              datasets: [{
+                data: Object.values(statusCounts),
+                backgroundColor: ['hsl(38, 92%, 50%)', 'hsl(199, 89%, 48%)', 'hsl(142, 60%, 40%)', 'hsl(0, 84%, 60%)'],
+              }]
             },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+          });
+        }
 
-            // 1. INITIALIZE
-            init: async () => {
-                try {
-                    App.renderNav();
-                    await App.fetchData();
-                    App.router('dashboard');
-                } catch (e) {
-                    console.error(e);
-                    document.getElementById('app-root').innerHTML = `<div class="text-red-500 p-10">Error initializing: ${e.message}</div>`;
-                }
+        // Chaperone load chart
+        const chapLoad = {};
+        users.filter(u => u.role === 'chaperone').forEach(c => { chapLoad[c.Name || c.id] = 0; });
+        taskAssignments.forEach(t => {
+          const chap = users.find(u => u.id === t.chaperone_id);
+          if (chap) chapLoad[chap.Name || chap.id] = (chapLoad[chap.Name || chap.id] || 0) + 1;
+        });
+
+        const ctx2 = document.getElementById('chaperoneChart');
+        if (ctx2) {
+          new Chart(ctx2, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(chapLoad).slice(0, 10),
+              datasets: [{
+                label: 'Assigned Tasks',
+                data: Object.values(chapLoad).slice(0, 10),
+                backgroundColor: 'hsl(142, 35%, 45%)',
+              }]
             },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+          });
+        }
+      }, [loading, taskAssignments, users]);
 
-            // 2. DATA FETCHING
-            fetchData: async () => {
-                document.getElementById('page-subtitle').innerText = "Syncing data...";
-                
-                const [users, tasks, habits, assignments] = await Promise.all([
-                    supabaseClient.from('Users').select('*').order('created_at', { ascending: false }),
-                    supabaseClient.from('tasks').select('*'),
-                    supabaseClient.from('habits').select('*'),
-                    supabaseClient.from('chaperone_protege').select('*')
-                ]);
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
 
-                App.state.users = users.data || [];
-                App.state.tasks = tasks.data || [];
-                App.state.habits = habits.data || [];
-                App.state.assignments = assignments.data || [];
-                
-                document.getElementById('page-subtitle').innerText = "Data synced";
-            },
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Dashboard Overview</h1>
+            <p className="page-subtitle">Welcome to the Heartfulness L.A.M.P Admin Dashboard</p>
+          </div>
 
-            // 3. NAVIGATION & ROUTING
-            renderNav: () => {
-                const items = [
-                    { id: 'dashboard', icon: 'grid', label: 'Dashboard' },
-                    { id: 'users', icon: 'users', label: 'Users' },
-                    { id: 'assignments', icon: 'link', label: 'Assignments' },
-                    { id: 'tasks', icon: 'check-square', label: 'Tasks' },
-                    { id: 'habits', icon: 'activity', label: 'Habits' },
-                    { id: 'graduates', icon: 'award', label: 'Graduates' }
-                ];
-                
-                const navHtml = items.map(item => `
-                    <button onclick="App.router('${item.id}')" id="nav-${item.id}" class="nav-item w-full flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-colors">
-                        <i data-feather="${item.icon}" class="w-4 h-4"></i> ${item.label}
-                    </button>
-                `).join('');
-                
-                document.getElementById('nav-menu').innerHTML = navHtml;
-            },
+          <div className="stats-grid">
+            <div className="stat-card">
+              <p className="stat-label">Total Protégés</p>
+              <p className="stat-value">{stats.proteges}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Total Chaperones</p>
+              <p className="stat-value">{stats.chaperones}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Active Tasks</p>
+              <p className="stat-value">{stats.activeTasks}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Avg Habit Streak</p>
+              <p className="stat-value">{stats.avgStreak}</p>
+            </div>
+          </div>
 
-            router: (view) => {
-                App.state.currentView = view;
-                
-                // Update Sidebar
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                document.getElementById(`nav-${view}`).classList.add('active');
+          <div className="grid-2">
+            <div className="card">
+              <h3 className="card-title">Task Status Distribution</h3>
+              <div className="chart-container">
+                <canvas id="taskChart"></canvas>
+              </div>
+            </div>
+            <div className="card">
+              <h3 className="card-title">Chaperone Load</h3>
+              <div className="chart-container">
+                <canvas id="chaperoneChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-                // Render Content
-                const root = document.getElementById('app-root');
-                root.innerHTML = ''; // Clear current
-                root.classList.remove('fade-in');
-                void root.offsetWidth; // Trigger reflow for animation
-                root.classList.add('fade-in');
+    // Users Page with Add User
+    function UsersPage({ data }) {
+      const { users, loading, refetch } = data;
+      const [search, setSearch] = useState('');
+      const [roleFilter, setRoleFilter] = useState('all');
+      const [showModal, setShowModal] = useState(false);
+      const [formData, setFormData] = useState({ Name: '', email: '', phone: '', role: 'protege', Gender: '', Age: '', location: '', language: '' });
+      const [alert, setAlert] = useState({ type: '', message: '' });
+      const [saving, setSaving] = useState(false);
 
-                if (view === 'dashboard') App.renderDashboard(root);
-                else if (view === 'users') App.renderUsers(root);
-                else if (view === 'assignments') App.renderAssignments(root);
-                else if (view === 'tasks') App.renderTasks(root);
-                else if (view === 'habits') App.renderHabits(root);
-                else if (view === 'graduates') App.renderGraduates(root);
+      const filteredUsers = useMemo(() => {
+        return users.filter(u => {
+          const matchesSearch = !search || (u.Name && u.Name.toLowerCase().includes(search.toLowerCase())) || (u.email && u.email.toLowerCase().includes(search.toLowerCase()));
+          const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+          return matchesSearch && matchesRole;
+        });
+      }, [users, search, roleFilter]);
 
-                feather.replace();
-            },
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setAlert({ type: '', message: '' });
 
-            // 4. VIEWS
+        try {
+          const { error } = await supabase.from('Users').insert([{
+            Name: formData.Name,
+            email: formData.email,
+            phone: formData.phone,
+            role: formData.role,
+            Gender: formData.Gender,
+            Age: formData.Age ? parseInt(formData.Age) : null,
+            location: formData.location,
+            language: formData.language,
+          }]);
 
-            renderDashboard: (root) => {
-                document.getElementById('page-title').innerText = "Dashboard Overview";
-                const { users, tasks } = App.state;
-                
-                const stats = [
-                    { label: 'Total Users', val: users.length, color: 'blue' },
-                    { label: 'Protégés', val: users.filter(u=>u.role==='protege').length, color: 'emerald' },
-                    { label: 'Chaperones', val: users.filter(u=>u.role==='chaperone').length, color: 'amber' },
-                    { label: 'Tasks', val: tasks.length, color: 'purple' }
-                ];
+          if (error) throw error;
+          
+          setAlert({ type: 'success', message: 'User created successfully!' });
+          setShowModal(false);
+          setFormData({ Name: '', email: '', phone: '', role: 'protege', Gender: '', Age: '', location: '', language: '' });
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
 
-                const cards = stats.map(s => `
-                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">${s.label}</div>
-                        <div class="text-3xl font-light text-gray-800 mt-2">${s.val}</div>
-                        <div class="w-full h-1 bg-${s.color}-100 mt-4 rounded-full"><div class="h-1 bg-${s.color}-500 rounded-full" style="width: 70%"></div></div>
-                    </div>
-                `).join('');
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
 
-                root.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">${cards}</div>
-                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-sm">
-                        <h3 class="font-bold text-gray-700 mb-4">Quick Actions</h3>
-                        <div class="flex gap-4">
-                            <button onclick="App.modals.openUser()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">Add User</button>
-                            <button onclick="App.modals.openTask()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Create Task</button>
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">User Management</h1>
+            <p className="page-subtitle">Manage all users in the system</p>
+          </div>
+
+          <Alert {...alert} onClose={() => setAlert({ type: '', message: '' })} />
+
+          <div className="filters">
+            <input 
+              type="text" 
+              className="form-input search-input" 
+              placeholder="Search users..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <select className="form-select" style={{ width: '150px' }} value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="chaperone">Chaperone</option>
+              <option value="protege">Protégé</option>
+            </select>
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Icons.Plus /> Add User
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(users, 'users')}>
+              <Icons.Download /> Export CSV
+            </button>
+          </div>
+
+          <div className="card">
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Location</th>
+                    <th>Batch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map(user => (
+                    <tr key={user.id}>
+                      <td>{user.Name || '-'}</td>
+                      <td>{user.email || '-'}</td>
+                      <td>{user.phone || '-'}</td>
+                      <td><RoleBadge role={user.role} /></td>
+                      <td>{user.location || '-'}</td>
+                      <td>{user.batchNo || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredUsers.length === 0 && <div className="empty-state">No users found</div>}
+            </div>
+          </div>
+
+          <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Add New User">
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Name *</label>
+                <input className="form-input" required value={formData.Name} onChange={e => setFormData({...formData, Name: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Phone</label>
+                <input className="form-input" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Role *</label>
+                <select className="form-select" required value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                  <option value="protege">Protégé</option>
+                  <option value="chaperone">Chaperone</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Gender</label>
+                  <select className="form-select" value={formData.Gender} onChange={e => setFormData({...formData, Gender: e.target.value})}>
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Age</label>
+                  <input className="form-input" type="number" value={formData.Age} onChange={e => setFormData({...formData, Age: e.target.value})} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Location</label>
+                <input className="form-input" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Language</label>
+                <input className="form-input" value={formData.language} onChange={e => setFormData({...formData, language: e.target.value})} />
+              </div>
+              <div className="action-buttons">
+                <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Add User'}</button>
+              </div>
+            </form>
+          </Modal>
+        </div>
+      );
+    }
+
+    // Chaperone-Protege Assignment Page
+    function AssignmentsPage({ data }) {
+      const { users, chaperoneProtege, loading, refetch } = data;
+      const [selectedChaperone, setSelectedChaperone] = useState('');
+      const [selectedProteges, setSelectedProteges] = useState([]);
+      const [alert, setAlert] = useState({ type: '', message: '' });
+      const [saving, setSaving] = useState(false);
+
+      const chaperones = useMemo(() => users.filter(u => u.role === 'chaperone'), [users]);
+      const proteges = useMemo(() => users.filter(u => u.role === 'protege'), [users]);
+
+      const existingAssignments = useMemo(() => {
+        const map = {};
+        chaperoneProtege.forEach(cp => {
+          if (!map[cp.chaperone_id]) map[cp.chaperone_id] = [];
+          map[cp.chaperone_id].push(cp.protege_id);
+        });
+        return map;
+      }, [chaperoneProtege]);
+
+      const handleAssign = async () => {
+        if (!selectedChaperone || selectedProteges.length === 0) {
+          setAlert({ type: 'error', message: 'Please select a chaperone and at least one protégé' });
+          return;
+        }
+
+        setSaving(true);
+        setAlert({ type: '', message: '' });
+
+        try {
+          const newAssignments = selectedProteges.map(protegeId => ({
+            chaperone_id: selectedChaperone,
+            protege_id: protegeId,
+          }));
+
+          const { error } = await supabase.from('chaperone_protege').upsert(newAssignments, { 
+            onConflict: 'chaperone_id,protege_id',
+            ignoreDuplicates: true 
+          });
+
+          if (error) throw error;
+
+          setAlert({ type: 'success', message: `Successfully assigned ${selectedProteges.length} protégé(s) to chaperone` });
+          setSelectedProteges([]);
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      const handleRemoveAssignment = async (chaperoneId, protegeId) => {
+        try {
+          const { error } = await supabase.from('chaperone_protege')
+            .delete()
+            .eq('chaperone_id', chaperoneId)
+            .eq('protege_id', protegeId);
+          
+          if (error) throw error;
+          setAlert({ type: 'success', message: 'Assignment removed' });
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        }
+      };
+
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
+
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Chaperone-Protégé Assignment</h1>
+            <p className="page-subtitle">Assign chaperones to mentor protégés</p>
+          </div>
+
+          <Alert {...alert} onClose={() => setAlert({ type: '', message: '' })} />
+
+          <div className="grid-2">
+            <div className="card">
+              <h3 className="card-title">New Assignment</h3>
+              
+              <div className="form-group">
+                <label className="form-label">Select Chaperone</label>
+                <select className="form-select" value={selectedChaperone} onChange={e => setSelectedChaperone(e.target.value)}>
+                  <option value="">Choose a chaperone...</option>
+                  {chaperones.map(c => (
+                    <option key={c.id} value={c.id}>{c.Name || c.email || c.id}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Select Protégés</label>
+                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem', padding: '0.5rem' }}>
+                  {proteges.map(p => (
+                    <label key={p.id} className="checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedProteges.includes(p.id)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedProteges([...selectedProteges, p.id]);
+                          } else {
+                            setSelectedProteges(selectedProteges.filter(id => id !== p.id));
+                          }
+                        }}
+                      />
+                      {p.Name || p.email || p.id}
+                    </label>
+                  ))}
+                  {proteges.length === 0 && <div className="empty-state">No protégés found</div>}
+                </div>
+              </div>
+
+              <button className="btn btn-primary" onClick={handleAssign} disabled={saving} style={{ width: '100%' }}>
+                {saving ? 'Assigning...' : `Assign ${selectedProteges.length} Protégé(s)`}
+              </button>
+            </div>
+
+            <div className="card">
+              <h3 className="card-title">Current Assignments</h3>
+              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {chaperones.map(chap => {
+                  const assignedProteges = existingAssignments[chap.id] || [];
+                  return (
+                    <div key={chap.id} style={{ marginBottom: '1rem', padding: '1rem', background: 'hsl(var(--accent) / 0.3)', borderRadius: '0.5rem' }}>
+                      <h4 style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>
+                        <RoleBadge role="chaperone" /> {chap.Name || chap.email}
+                      </h4>
+                      {assignedProteges.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {assignedProteges.map(pid => {
+                            const protege = users.find(u => u.id === pid);
+                            return (
+                              <span key={pid} className="badge badge-protege" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                {protege?.Name || pid.slice(0, 8)}
+                                <button 
+                                  onClick={() => handleRemoveAssignment(chap.id, pid)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', marginLeft: '0.25rem' }}
+                                >
+                                  <Icons.X />
+                                </button>
+                              </span>
+                            );
+                          })}
                         </div>
+                      ) : (
+                        <span style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>No protégés assigned</span>
+                      )}
                     </div>
-                `;
-            },
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-            renderUsers: (root) => {
-                document.getElementById('page-title').innerText = "User Management";
-                
-                const rows = App.state.users.map(u => `
-                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
-                        <td class="p-4">
-                            <div class="font-medium text-gray-900">${u.Name || 'Unknown'}</div>
-                            <div class="text-xs text-gray-400">${u.email || 'No Email'}</div>
+    // Tasks Page with Creation and Assignment
+    function TasksPage({ data }) {
+      const { users, tasks, taskAssignments, loading, refetch } = data;
+      const [showCreateModal, setShowCreateModal] = useState(false);
+      const [showAssignModal, setShowAssignModal] = useState(false);
+      const [selectedTask, setSelectedTask] = useState(null);
+      const [search, setSearch] = useState('');
+      const [statusFilter, setStatusFilter] = useState('all');
+      const [alert, setAlert] = useState({ type: '', message: '' });
+      const [taskForm, setTaskForm] = useState({ name: '', description: '', type: 'knowledge', deadline: '' });
+      const [selectedProteges, setSelectedProteges] = useState([]);
+      const [saving, setSaving] = useState(false);
+
+      const proteges = useMemo(() => users.filter(u => u.role === 'protege'), [users]);
+
+      const filteredTasks = useMemo(() => {
+        return tasks.filter(t => {
+          const matchesSearch = !search || t.name.toLowerCase().includes(search.toLowerCase());
+          return matchesSearch;
+        });
+      }, [tasks, search]);
+
+      const getTaskAssignments = (taskId) => taskAssignments.filter(ta => ta.task_id === taskId);
+
+      const handleCreateTask = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+          const { error } = await supabase.from('tasks').insert([{
+            name: taskForm.name,
+            description: taskForm.description,
+            type: taskForm.type,
+            deadline: taskForm.deadline || null,
+          }]);
+          if (error) throw error;
+          setAlert({ type: 'success', message: 'Task created!' });
+          setShowCreateModal(false);
+          setTaskForm({ name: '', description: '', type: 'knowledge', deadline: '' });
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      const handleAssignTask = async () => {
+        if (!selectedTask || selectedProteges.length === 0) {
+          setAlert({ type: 'error', message: 'Please select protégés' });
+          return;
+        }
+        setSaving(true);
+        try {
+          const assignments = selectedProteges.map(protegeId => ({
+            task_id: selectedTask.id,
+            protege_id: protegeId,
+            status: 'assigned',
+          }));
+          const { error } = await supabase.from('task_assignments').insert(assignments);
+          if (error) throw error;
+          setAlert({ type: 'success', message: `Task assigned to ${selectedProteges.length} protégé(s)` });
+          setShowAssignModal(false);
+          setSelectedProteges([]);
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
+
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Task Management</h1>
+            <p className="page-subtitle">Create, assign, and track tasks</p>
+          </div>
+
+          <Alert {...alert} onClose={() => setAlert({ type: '', message: '' })} />
+
+          <div className="filters">
+            <input 
+              type="text" 
+              className="form-input search-input" 
+              placeholder="Search tasks..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+              <Icons.Plus /> Create Task
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(tasks, 'tasks')}>
+              <Icons.Download /> Export CSV
+            </button>
+          </div>
+
+          <div className="card">
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Deadline</th>
+                    <th>Assignments</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTasks.map(task => {
+                    const assignments = getTaskAssignments(task.id);
+                    return (
+                      <tr key={task.id}>
+                        <td>{task.name}</td>
+                        <td><span className={`badge ${task.type === 'knowledge' ? 'badge-info' : 'badge-warning'}`}>{task.type}</span></td>
+                        <td>{task.deadline ? new Date(task.deadline).toLocaleDateString() : '-'}</td>
+                        <td>{assignments.length} assigned</td>
+                        <td>
+                          <button className="btn btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }} onClick={() => { setSelectedTask(task); setShowAssignModal(true); }}>
+                            Assign
+                          </button>
                         </td>
-                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold uppercase ${u.role==='admin'?'bg-red-100 text-red-600':u.role==='chaperone'?'bg-amber-100 text-amber-600':'bg-blue-100 text-blue-600'}">${u.role||'None'}</span></td>
-                        <td class="p-4 text-sm text-gray-500">${u.location || '-'}</td>
-                        <td class="p-4 flex gap-2 justify-end">
-                            <button onclick="App.modals.openUser('${u.id}')" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Edit</button>
-                            <button onclick="App.actions.deleteUser('${u.id}')" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {filteredTasks.length === 0 && <div className="empty-state">No tasks found</div>}
+            </div>
+          </div>
+
+          {/* Task Assignments Table */}
+          <div className="card">
+            <h3 className="card-title">Task Assignments</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Protégé</th>
+                    <th>Status</th>
+                    <th>Assigned At</th>
+                    <th>Completed At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {taskAssignments.slice(0, 20).map(ta => {
+                    const task = tasks.find(t => t.id === ta.task_id);
+                    const protege = users.find(u => u.id === ta.protege_id);
+                    return (
+                      <tr key={ta.id}>
+                        <td>{task?.name || '-'}</td>
+                        <td>{protege?.Name || '-'}</td>
+                        <td><StatusBadge status={ta.status} /></td>
+                        <td>{ta.assigned_at ? new Date(ta.assigned_at).toLocaleDateString() : '-'}</td>
+                        <td>{ta.completed_at ? new Date(ta.completed_at).toLocaleDateString() : '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Create Task Modal */}
+          <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Task">
+            <form onSubmit={handleCreateTask}>
+              <div className="form-group">
+                <label className="form-label">Task Name *</label>
+                <input className="form-input" required value={taskForm.name} onChange={e => setTaskForm({...taskForm, name: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea className="form-textarea" value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Type *</label>
+                <select className="form-select" value={taskForm.type} onChange={e => setTaskForm({...taskForm, type: e.target.value})}>
+                  <option value="knowledge">Knowledge</option>
+                  <option value="experimental">Experimental</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Deadline</label>
+                <input className="form-input" type="datetime-local" value={taskForm.deadline} onChange={e => setTaskForm({...taskForm, deadline: e.target.value})} />
+              </div>
+              <div className="action-buttons">
+                <button type="button" className="btn btn-outline" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Creating...' : 'Create Task'}</button>
+              </div>
+            </form>
+          </Modal>
+
+          {/* Assign Task Modal */}
+          <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} title={`Assign: ${selectedTask?.name}`}>
+            <div className="form-group">
+              <label className="form-label">Select Protégés</label>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem', padding: '0.5rem' }}>
+                {proteges.map(p => (
+                  <label key={p.id} className="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedProteges.includes(p.id)}
+                      onChange={e => {
+                        if (e.target.checked) setSelectedProteges([...selectedProteges, p.id]);
+                        else setSelectedProteges(selectedProteges.filter(id => id !== p.id));
+                      }}
+                    />
+                    {p.Name || p.email || p.id}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="action-buttons">
+              <button className="btn btn-outline" onClick={() => setShowAssignModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAssignTask} disabled={saving}>{saving ? 'Assigning...' : 'Assign Task'}</button>
+            </div>
+          </Modal>
+        </div>
+      );
+    }
+
+    // Habits Page with Creation and Assignment
+    function HabitsPage({ data }) {
+      const { users, habits, habitLogs, habitStreaks, habitAssignments, loading, refetch } = data;
+      const [showCreateModal, setShowCreateModal] = useState(false);
+      const [showAssignModal, setShowAssignModal] = useState(false);
+      const [selectedHabit, setSelectedHabit] = useState(null);
+      const [habitForm, setHabitForm] = useState({ name: '', description: '' });
+      const [selectedProteges, setSelectedProteges] = useState([]);
+      const [alert, setAlert] = useState({ type: '', message: '' });
+      const [saving, setSaving] = useState(false);
+
+      const proteges = useMemo(() => users.filter(u => u.role === 'protege'), [users]);
+
+      const handleCreateHabit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+          const { error } = await supabase.from('habits').insert([{
+            name: habitForm.name,
+            description: habitForm.description,
+            is_active: true,
+          }]);
+          if (error) throw error;
+          setAlert({ type: 'success', message: 'Habit created!' });
+          setShowCreateModal(false);
+          setHabitForm({ name: '', description: '' });
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      const handleAssignHabit = async () => {
+        if (!selectedHabit || selectedProteges.length === 0) {
+          setAlert({ type: 'error', message: 'Please select protégés' });
+          return;
+        }
+        setSaving(true);
+        try {
+          const assignments = selectedProteges.map(protegeId => ({
+            habit_id: selectedHabit.id,
+            protege_id: protegeId,
+          }));
+          const { error } = await supabase.from('habit_assignments').insert(assignments);
+          if (error) throw error;
+          setAlert({ type: 'success', message: `Habit assigned to ${selectedProteges.length} protégé(s)` });
+          setShowAssignModal(false);
+          setSelectedProteges([]);
+          refetch();
+        } catch (err) {
+          setAlert({ type: 'error', message: err.message });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
+
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Habit Tracking</h1>
+            <p className="page-subtitle">Create and manage habits for protégés</p>
+          </div>
+
+          <Alert {...alert} onClose={() => setAlert({ type: '', message: '' })} />
+
+          <div className="filters">
+            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+              <Icons.Plus /> Create Habit
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(habits, 'habits')}>
+              <Icons.Download /> Export Habits
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(habitLogs, 'habit_logs')}>
+              <Icons.Download /> Export Logs
+            </button>
+          </div>
+
+          <div className="stats-grid">
+            <div className="stat-card">
+              <p className="stat-label">Total Habits</p>
+              <p className="stat-value">{habits.length}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Total Logs</p>
+              <p className="stat-value">{habitLogs.length}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Avg Streak</p>
+              <p className="stat-value">{habitStreaks.length ? Math.round(habitStreaks.reduce((a, s) => a + (s.current_streak || 0), 0) / habitStreaks.length) : 0}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Best Streak</p>
+              <p className="stat-value">{habitStreaks.length ? Math.max(...habitStreaks.map(s => s.longest_streak || 0)) : 0}</p>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">Habits</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {habits.map(habit => (
+                    <tr key={habit.id}>
+                      <td>{habit.name}</td>
+                      <td>{habit.description || '-'}</td>
+                      <td><span className={`badge ${habit.is_active ? 'badge-success' : 'badge-danger'}`}>{habit.is_active ? 'Active' : 'Inactive'}</span></td>
+                      <td>
+                        <button className="btn btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }} onClick={() => { setSelectedHabit(habit); setShowAssignModal(true); }}>
+                          Assign
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {habits.length === 0 && <div className="empty-state">No habits found</div>}
+            </div>
+          </div>
+
+          {/* Streak Leaderboard */}
+          <div className="card">
+            <h3 className="card-title">Streak Leaderboard</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Protégé</th>
+                    <th>Habit</th>
+                    <th>Current Streak</th>
+                    <th>Longest Streak</th>
+                    <th>Last Logged</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {habitStreaks.sort((a, b) => (b.current_streak || 0) - (a.current_streak || 0)).slice(0, 10).map(streak => {
+                    const protege = users.find(u => u.id === streak.protege_id);
+                    const habit = habits.find(h => h.id === streak.habit_id);
+                    return (
+                      <tr key={streak.id}>
+                        <td>{protege?.Name || '-'}</td>
+                        <td>{habit?.name || '-'}</td>
+                        <td><strong>{streak.current_streak}</strong> days</td>
+                        <td>{streak.longest_streak} days</td>
+                        <td>{streak.last_logged_date || '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Create Habit Modal */}
+          <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Habit">
+            <form onSubmit={handleCreateHabit}>
+              <div className="form-group">
+                <label className="form-label">Habit Name *</label>
+                <input className="form-input" required value={habitForm.name} onChange={e => setHabitForm({...habitForm, name: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea className="form-textarea" value={habitForm.description} onChange={e => setHabitForm({...habitForm, description: e.target.value})} />
+              </div>
+              <div className="action-buttons">
+                <button type="button" className="btn btn-outline" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Creating...' : 'Create Habit'}</button>
+              </div>
+            </form>
+          </Modal>
+
+          {/* Assign Habit Modal */}
+          <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} title={`Assign: ${selectedHabit?.name}`}>
+            <div className="form-group">
+              <label className="form-label">Select Protégés</label>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem', padding: '0.5rem' }}>
+                {proteges.map(p => (
+                  <label key={p.id} className="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedProteges.includes(p.id)}
+                      onChange={e => {
+                        if (e.target.checked) setSelectedProteges([...selectedProteges, p.id]);
+                        else setSelectedProteges(selectedProteges.filter(id => id !== p.id));
+                      }}
+                    />
+                    {p.Name || p.email || p.id}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="action-buttons">
+              <button className="btn btn-outline" onClick={() => setShowAssignModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAssignHabit} disabled={saving}>{saving ? 'Assigning...' : 'Assign Habit'}</button>
+            </div>
+          </Modal>
+        </div>
+      );
+    }
+
+    // Q&A Page
+    function QAPage({ data }) {
+      const { users, questions, loading, refetch } = data;
+      const [filter, setFilter] = useState('all');
+      const [search, setSearch] = useState('');
+
+      const filteredQuestions = useMemo(() => {
+        return questions.filter(q => {
+          const matchesFilter = filter === 'all' || (filter === 'active' && !q.archived) || (filter === 'archived' && q.archived);
+          const matchesSearch = !search || q.title.toLowerCase().includes(search.toLowerCase());
+          return matchesFilter && matchesSearch;
+        });
+      }, [questions, filter, search]);
+
+      const handleArchive = async (id, archived) => {
+        try {
+          await supabase.from('questions').update({ archived: !archived }).eq('id', id);
+          refetch();
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
+
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Q&A Moderation</h1>
+            <p className="page-subtitle">Manage questions and answers</p>
+          </div>
+
+          <div className="filters">
+            <input 
+              type="text" 
+              className="form-input search-input" 
+              placeholder="Search questions..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <select className="form-select" style={{ width: '150px' }} value={filter} onChange={e => setFilter(e.target.value)}>
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+            </select>
+            <button className="btn btn-outline" onClick={() => exportToCSV(questions, 'questions')}>
+              <Icons.Download /> Export CSV
+            </button>
+          </div>
+
+          <div className="card">
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredQuestions.map(q => {
+                    const author = users.find(u => u.id === q.user_id);
+                    return (
+                      <tr key={q.id}>
+                        <td>{q.title}</td>
+                        <td>{author?.Name || '-'}</td>
+                        <td><span className={`badge ${q.archived ? 'badge-danger' : 'badge-success'}`}>{q.archived ? 'Archived' : 'Active'}</span></td>
+                        <td>{new Date(q.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <button 
+                            className={`btn ${q.archived ? 'btn-success' : 'btn-outline'}`}
+                            style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
+                            onClick={() => handleArchive(q.id, q.archived)}
+                          >
+                            {q.archived ? 'Restore' : 'Archive'}
+                          </button>
                         </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {filteredQuestions.length === 0 && <div className="empty-state">No questions found</div>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Achievements Page - Users who completed tasks on time with habit consistency
+    function AchievementsPage({ data }) {
+      const { users, tasks, taskAssignments, habitLogs, habitStreaks, loading } = data;
+      const [consistencyThreshold, setConsistencyThreshold] = useState(70);
+
+      const achievers = useMemo(() => {
+        const proteges = users.filter(u => u.role === 'protege');
+        
+        return proteges.map(protege => {
+          // Calculate task completion stats
+          const protegeAssignments = taskAssignments.filter(ta => ta.protege_id === protege.id);
+          const completedOnTime = protegeAssignments.filter(ta => {
+            if (ta.status !== 'completed' || !ta.completed_at) return false;
+            const task = tasks.find(t => t.id === ta.task_id);
+            if (!task?.deadline) return true; // No deadline = on time
+            return new Date(ta.completed_at) <= new Date(task.deadline);
+          }).length;
+          const totalAssigned = protegeAssignments.length;
+          const taskCompletionRate = totalAssigned > 0 ? Math.round((completedOnTime / totalAssigned) * 100) : 0;
+
+          // Calculate habit consistency
+          const protegeStreaks = habitStreaks.filter(s => s.protege_id === protege.id);
+          const protegeLogs = habitLogs.filter(l => l.protege_id === protege.id);
+          
+          // Simple consistency: current streak / 30 days * 100 (capped at 100%)
+          const avgStreak = protegeStreaks.length > 0 
+            ? protegeStreaks.reduce((a, s) => a + (s.current_streak || 0), 0) / protegeStreaks.length 
+            : 0;
+          const habitConsistency = Math.min(100, Math.round((avgStreak / 30) * 100));
+
+          return {
+            ...protege,
+            completedOnTime,
+            totalAssigned,
+            taskCompletionRate,
+            habitConsistency,
+            avgStreak: Math.round(avgStreak),
+            totalLogs: protegeLogs.length,
+            isAchiever: taskCompletionRate >= 100 && habitConsistency >= consistencyThreshold,
+          };
+        }).filter(p => p.totalAssigned > 0 || p.totalLogs > 0);
+      }, [users, tasks, taskAssignments, habitLogs, habitStreaks, consistencyThreshold]);
+
+      const qualifiedAchievers = achievers.filter(a => a.isAchiever);
+
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
+
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Achievements</h1>
+            <p className="page-subtitle">Protégés who completed all tasks on time with consistent habits</p>
+          </div>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ marginBottom: 0, flex: '1', minWidth: '200px' }}>
+                <label className="form-label">Habit Consistency Threshold (%)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value={consistencyThreshold}
+                    onChange={e => setConsistencyThreshold(parseInt(e.target.value))}
+                    style={{ flex: 1 }}
+                  />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    style={{ width: '80px' }}
+                    value={consistencyThreshold}
+                    onChange={e => setConsistencyThreshold(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                  />
+                </div>
+              </div>
+              <button className="btn btn-primary" onClick={() => exportToCSV(qualifiedAchievers, 'achievers')}>
+                <Icons.Download /> Export Achievers
+              </button>
+              <button className="btn btn-outline" onClick={() => exportToCSV(achievers, 'all_protege_stats')}>
+                <Icons.Download /> Export All Stats
+              </button>
+            </div>
+          </div>
+
+          <div className="stats-grid">
+            <div className="stat-card achievement-card">
+              <div className="achievement-icon"><Icons.Trophy /></div>
+              <p className="stat-label">Qualified Achievers</p>
+              <p className="stat-value">{qualifiedAchievers.length}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Total Protégés Analyzed</p>
+              <p className="stat-value">{achievers.length}</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Consistency Threshold</p>
+              <p className="stat-value">{consistencyThreshold}%</p>
+            </div>
+          </div>
+
+          {/* Achievers Section */}
+          {qualifiedAchievers.length > 0 && (
+            <div className="card" style={{ background: 'linear-gradient(135deg, hsl(142 30% 95%), hsl(0 0% 100%))' }}>
+              <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icons.Award /> Star Achievers
+              </h3>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Tasks Completed On Time</th>
+                      <th>Task Rate</th>
+                      <th>Habit Consistency</th>
+                      <th>Avg Streak</th>
                     </tr>
-                `).join('');
+                  </thead>
+                  <tbody>
+                    {qualifiedAchievers.map(a => (
+                      <tr key={a.id}>
+                        <td><strong>{a.Name || '-'}</strong></td>
+                        <td>{a.completedOnTime} / {a.totalAssigned}</td>
+                        <td><span className="badge badge-success">{a.taskCompletionRate}%</span></td>
+                        <td><span className="badge badge-success">{a.habitConsistency}%</span></td>
+                        <td>{a.avgStreak} days</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-                root.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4 border-b border-gray-100 flex justify-between bg-gray-50">
-                            <h3 class="font-semibold text-gray-700">All Participants</h3>
-                            <button onclick="App.modals.openUser()" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-700">New User</button>
-                        </div>
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Name</th><th class="p-4">Role</th><th class="p-4">Location</th><th class="p-4 text-right">Actions</th></tr></thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                `;
-            },
-
-            renderAssignments: (root) => {
-                document.getElementById('page-title').innerText = "Chaperone Assignments";
-                
-                const rows = App.state.assignments.map(a => {
-                    const chap = App.state.users.find(u => u.id === a.chaperone_id);
-                    const prot = App.state.users.find(u => u.id === a.protege_id);
-                    if(!chap || !prot) return ''; // Skip if users deleted
-                    return `
-                        <tr class="border-b border-gray-50">
-                            <td class="p-4 font-medium text-amber-700">${chap.Name}</td>
-                            <td class="p-4 font-medium text-blue-700">${prot.Name}</td>
-                            <td class="p-4 text-right">
-                                <button onclick="App.actions.deleteAssignment('${a.id}')" class="text-red-400 hover:text-red-600"><i data-feather="trash-2" class="w-4 h-4"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-                root.innerHTML = `
-                    <div class="mb-6 bg-white p-4 rounded-xl border border-gray-100 flex gap-4 items-end shadow-sm">
-                        <div class="flex-1">
-                            <label class="text-xs font-bold text-gray-400">Select Chaperone</label>
-                            <select id="assign-chap" class="w-full p-2 border rounded mt-1 bg-gray-50 text-sm">
-                                <option value="">-- Choose --</option>
-                                ${App.state.users.filter(u=>u.role==='chaperone').map(u=>`<option value="${u.id}">${u.Name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-xs font-bold text-gray-400">Select Protégé</label>
-                            <select id="assign-prot" class="w-full p-2 border rounded mt-1 bg-gray-50 text-sm">
-                                <option value="">-- Choose --</option>
-                                ${App.state.users.filter(u=>u.role==='protege').map(u=>`<option value="${u.id}">${u.Name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <button onclick="App.actions.createAssignment()" class="px-4 py-2 bg-emerald-600 text-white rounded text-sm font-medium">Link Users</button>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Chaperone</th><th class="p-4">Protégé</th><th class="p-4 text-right">Remove</th></tr></thead>
-                            <tbody>${rows || '<tr><td colspan="3" class="p-6 text-center text-gray-400">No assignments yet.</td></tr>'}</tbody>
-                        </table>
-                    </div>
-                `;
-            },
-
-            renderTasks: (root) => {
-                document.getElementById('page-title').innerText = "Task Library";
-                const rows = App.state.tasks.map(t => `
-                    <tr class="border-b border-gray-50">
-                        <td class="p-4 font-medium">${t.name}</td>
-                        <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs uppercase">${t.type}</span></td>
-                        <td class="p-4 text-sm text-gray-500">${t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</td>
-                        <td class="p-4 text-right"><button onclick="App.actions.deleteTask('${t.id}')" class="text-red-500 text-xs">Delete</button></td>
+          {/* All Protégés Stats */}
+          <div className="card">
+            <h3 className="card-title">All Protégé Statistics</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Tasks On Time</th>
+                    <th>Task Rate</th>
+                    <th>Habit Consistency</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {achievers.sort((a, b) => (b.isAchiever ? 1 : 0) - (a.isAchiever ? 1 : 0) || b.taskCompletionRate - a.taskCompletionRate).map(a => (
+                    <tr key={a.id}>
+                      <td>{a.Name || '-'}</td>
+                      <td>{a.completedOnTime} / {a.totalAssigned}</td>
+                      <td><span className={`badge ${a.taskCompletionRate >= 100 ? 'badge-success' : a.taskCompletionRate >= 50 ? 'badge-warning' : 'badge-danger'}`}>{a.taskCompletionRate}%</span></td>
+                      <td><span className={`badge ${a.habitConsistency >= consistencyThreshold ? 'badge-success' : a.habitConsistency >= 50 ? 'badge-warning' : 'badge-danger'}`}>{a.habitConsistency}%</span></td>
+                      <td>
+                        {a.isAchiever ? (
+                          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Icons.Check /> Achieved
+                          </span>
+                        ) : (
+                          <span className="badge badge-warning">In Progress</span>
+                        )}
+                      </td>
                     </tr>
-                `).join('');
+                  ))}
+                </tbody>
+              </table>
+              {achievers.length === 0 && <div className="empty-state">No protégé data available</div>}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-                root.innerHTML = `
-                    <div class="flex justify-end mb-4">
-                        <button onclick="App.modals.openTask()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-blue-700">Create Task</button>
-                    </div>
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Task</th><th class="p-4">Type</th><th class="p-4">Deadline</th><th class="p-4 text-right">Action</th></tr></thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                `;
+    // Analytics Page
+    function AnalyticsPage({ data }) {
+      const { users, tasks, taskAssignments, habitLogs, habitStreaks, loading } = data;
+
+      useEffect(() => {
+        if (loading) return;
+
+        // Task completion trend (by month)
+        const monthlyTasks = {};
+        taskAssignments.filter(t => t.status === 'completed' && t.completed_at).forEach(t => {
+          const month = new Date(t.completed_at).toLocaleString('default', { month: 'short', year: 'numeric' });
+          monthlyTasks[month] = (monthlyTasks[month] || 0) + 1;
+        });
+
+        const ctx1 = document.getElementById('trendChart');
+        if (ctx1) {
+          new Chart(ctx1, {
+            type: 'line',
+            data: {
+              labels: Object.keys(monthlyTasks).slice(-6),
+              datasets: [{
+                label: 'Tasks Completed',
+                data: Object.values(monthlyTasks).slice(-6),
+                borderColor: 'hsl(142, 35%, 45%)',
+                backgroundColor: 'hsl(142, 35%, 45%, 0.1)',
+                fill: true,
+                tension: 0.3,
+              }]
             },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+        }
 
-            renderHabits: (root) => {
-                document.getElementById('page-title').innerText = "Habit Tracking";
-                 const rows = App.state.habits.map(h => `
-                    <tr class="border-b border-gray-50">
-                        <td class="p-4 font-medium">${h.name}</td>
-                        <td class="p-4 text-sm text-gray-500">${h.description || ''}</td>
-                        <td class="p-4 text-right"><button onclick="App.actions.deleteHabit('${h.id}')" class="text-red-500 text-xs">Delete</button></td>
-                    </tr>
-                `).join('');
+        // User distribution
+        const roleCounts = { admin: 0, chaperone: 0, protege: 0 };
+        users.forEach(u => { if (roleCounts[u.role] !== undefined) roleCounts[u.role]++; });
 
-                root.innerHTML = `
-                    <div class="flex justify-end mb-4">
-                        <button onclick="App.modals.openHabit()" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-amber-700">Create Habit</button>
-                    </div>
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Habit Name</th><th class="p-4">Description</th><th class="p-4 text-right">Action</th></tr></thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                `;
+        const ctx2 = document.getElementById('roleChart');
+        if (ctx2) {
+          new Chart(ctx2, {
+            type: 'pie',
+            data: {
+              labels: ['Admin', 'Chaperone', 'Protégé'],
+              datasets: [{
+                data: Object.values(roleCounts),
+                backgroundColor: ['hsl(142, 35%, 45%)', 'hsl(199, 89%, 48%)', 'hsl(38, 92%, 50%)'],
+              }]
             },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+          });
+        }
 
-            renderGraduates: (root) => {
-                document.getElementById('page-title').innerText = "Program Graduates";
-                
-                // Filtering Logic
-                // 1. User must be protege
-                // 2. Placeholder: 'All tasks' assumed done for visual demo if they have completed >= 1 task (real logic needs assignment check)
-                // 3. Streak must be >= threshold
-                
-                const threshold = App.state.graduateThreshold;
-                
-                const graduates = App.state.users.filter(u => {
-                    if (u.role !== 'protege') return false;
-                    const streak = u.currentStreak || 0;
-                    // Simple calculation: streak / 100 * 100 for percentage simulation, usually this requires log count
-                    // We will just use 'streak' as the metric for now
-                    return streak >= threshold; 
-                });
+        // Habit engagement
+        const dailyLogs = {};
+        habitLogs.forEach(l => {
+          const date = l.date;
+          dailyLogs[date] = (dailyLogs[date] || 0) + 1;
+        });
 
-                const rows = graduates.map(u => `
-                    <tr class="border-b border-gray-50">
-                        <td class="p-4 font-medium text-gray-900">${u.Name}</td>
-                        <td class="p-4 text-center"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">QUALIFIED</span></td>
-                        <td class="p-4 text-center text-lg font-bold text-gray-700">${u.currentStreak || 0}</td>
-                        <td class="p-4 text-center text-gray-500">${u.level_of_heartfulness || 0}</td>
-                    </tr>
-                `).join('');
-
-                root.innerHTML = `
-                    <div class="bg-white p-4 rounded-xl border border-gray-100 mb-6 flex items-center gap-4 shadow-sm">
-                        <i data-feather="filter" class="text-gray-400"></i>
-                        <span class="text-sm font-bold text-gray-600">Min Consistency Metric:</span>
-                        <input type="number" id="grad-input" value="${threshold}" class="border rounded p-2 w-20 text-center" onchange="App.actions.updateThreshold(this.value)">
-                        <span class="text-sm text-gray-400"> (Days/Points)</span>
-                    </div>
-
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs text-gray-400 uppercase"><tr><th class="p-4">Name</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Consistency</th><th class="p-4 text-center">Level</th></tr></thead>
-                            <tbody>${rows || '<tr><td colspan="4" class="p-8 text-center text-gray-400">No graduates meet this criteria.</td></tr>'}</tbody>
-                        </table>
-                    </div>
-                `;
+        const ctx3 = document.getElementById('habitChart');
+        if (ctx3) {
+          new Chart(ctx3, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(dailyLogs).slice(-14),
+              datasets: [{
+                label: 'Habit Logs',
+                data: Object.values(dailyLogs).slice(-14),
+                backgroundColor: 'hsl(142, 60%, 40%)',
+              }]
             },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+        }
+      }, [loading, users, taskAssignments, habitLogs]);
 
-            // 5. MODALS & ACTIONS
-            modals: {
-                close: () => {
-                    const el = document.getElementById('modal-overlay');
-                    const content = document.getElementById('modal-content');
-                    content.classList.remove('scale-100', 'opacity-100');
-                    content.classList.add('scale-95', 'opacity-0');
-                    setTimeout(() => el.classList.add('hidden'), 200);
-                },
-                open: (html) => {
-                    const el = document.getElementById('modal-overlay');
-                    const content = document.getElementById('modal-content');
-                    content.innerHTML = html;
-                    el.classList.remove('hidden');
-                    // Animation
-                    setTimeout(() => {
-                        content.classList.remove('scale-95', 'opacity-0');
-                        content.classList.add('scale-100', 'opacity-100');
-                    }, 10);
-                },
-                openUser: (id = null) => {
-                    const user = id ? App.state.users.find(u => u.id === id) : null;
-                    App.modals.open(`
-                        <div class="p-6">
-                            <h2 class="text-lg font-bold mb-4">${user ? 'Edit' : 'Create'} User</h2>
-                            <form onsubmit="App.actions.saveUser(event, '${id || ''}')" class="space-y-4">
-                                <input class="w-full border p-2 rounded" name="Name" placeholder="Full Name" value="${user?.Name || ''}" required>
-                                <input class="w-full border p-2 rounded" name="email" placeholder="Email" value="${user?.email || ''}" required>
-                                <select class="w-full border p-2 rounded" name="role">
-                                    <option value="protege" ${user?.role==='protege'?'selected':''}>Protégé</option>
-                                    <option value="chaperone" ${user?.role==='chaperone'?'selected':''}>Chaperone</option>
-                                    <option value="admin" ${user?.role==='admin'?'selected':''}>Admin</option>
-                                </select>
-                                <input class="w-full border p-2 rounded" name="location" placeholder="Location" value="${user?.location || ''}">
-                                <div class="flex justify-end gap-2 pt-4">
-                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
-                                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Save</button>
-                                </div>
-                            </form>
-                        </div>
-                    `);
-                },
-                openTask: () => {
-                    App.modals.open(`
-                        <div class="p-6">
-                            <h2 class="text-lg font-bold mb-4">New Task</h2>
-                            <form onsubmit="App.actions.saveTask(event)" class="space-y-4">
-                                <input class="w-full border p-2 rounded" name="name" placeholder="Task Name" required>
-                                <select class="w-full border p-2 rounded" name="type">
-                                    <option value="knowledge">Knowledge</option>
-                                    <option value="experimental">Experimental</option>
-                                </select>
-                                <input type="date" class="w-full border p-2 rounded" name="deadline">
-                                <div class="flex justify-end gap-2 pt-4">
-                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
-                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Create</button>
-                                </div>
-                            </form>
-                        </div>
-                    `);
-                },
-                openHabit: () => {
-                     App.modals.open(`
-                        <div class="p-6">
-                            <h2 class="text-lg font-bold mb-4">New Habit</h2>
-                            <form onsubmit="App.actions.saveHabit(event)" class="space-y-4">
-                                <input class="w-full border p-2 rounded" name="name" placeholder="Habit Name" required>
-                                <textarea class="w-full border p-2 rounded" name="description" placeholder="Description"></textarea>
-                                <div class="flex justify-end gap-2 pt-4">
-                                    <button type="button" onclick="App.modals.close()" class="px-4 py-2 text-gray-500">Cancel</button>
-                                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded">Create</button>
-                                </div>
-                            </form>
-                        </div>
-                    `);
-                }
-            },
+      if (loading) return <div className="loading"><div className="spinner" /> Loading...</div>;
 
-            actions: {
-                saveUser: async (e, id) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const data = Object.fromEntries(formData.entries());
-                    
-                    if(id) {
-                        await supabaseClient.from('Users').update(data).eq('id', id);
-                    } else {
-                        await supabaseClient.from('Users').insert([data]);
-                    }
-                    App.modals.close();
-                    await App.fetchData();
-                    App.router('users');
-                },
-                deleteUser: async (id) => {
-                    if(confirm("Delete this user?")) {
-                        await supabaseClient.from('Users').delete().eq('id', id);
-                        await App.fetchData();
-                        App.router('users');
-                    }
-                },
-                createAssignment: async () => {
-                    const chapId = document.getElementById('assign-chap').value;
-                    const protId = document.getElementById('assign-prot').value;
-                    if(!chapId || !protId) return alert("Select both users");
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Analytics & Reports</h1>
+            <p className="page-subtitle">Data insights and export options</p>
+          </div>
 
-                    await supabaseClient.from('chaperone_protege').insert([{
-                        chaperone_id: chapId,
-                        protege_id: protId
-                    }]);
-                    await App.fetchData();
-                    App.router('assignments');
-                },
-                deleteAssignment: async (id) => {
-                    if(confirm("Remove this link?")) {
-                        await supabaseClient.from('chaperone_protege').delete().eq('id', id);
-                        await App.fetchData();
-                        App.router('assignments');
-                    }
-                },
-                saveTask: async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const data = Object.fromEntries(formData.entries());
-                    if(!data.deadline) delete data.deadline; // Handle empty date
-                    
-                    await supabaseClient.from('tasks').insert([data]);
-                    App.modals.close();
-                    await App.fetchData();
-                    App.router('tasks');
-                },
-                deleteTask: async (id) => {
-                    if(confirm("Delete task?")) {
-                        await supabaseClient.from('tasks').delete().eq('id', id);
-                        await App.fetchData();
-                        App.router('tasks');
-                    }
-                },
-                saveHabit: async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const data = Object.fromEntries(formData.entries());
-                    await supabaseClient.from('habits').insert([data]);
-                    App.modals.close();
-                    await App.fetchData();
-                    App.router('habits');
-                },
-                deleteHabit: async (id) => {
-                    if(confirm("Delete habit?")) {
-                        await supabaseClient.from('habits').delete().eq('id', id);
-                        await App.fetchData();
-                        App.router('habits');
-                    }
-                },
-                updateThreshold: (val) => {
-                    App.state.graduateThreshold = parseInt(val);
-                    App.router('graduates');
-                }
-            }
-        };
+          <div className="filters">
+            <button className="btn btn-primary" onClick={() => exportToCSV(users, 'users')}>
+              <Icons.Download /> Export Users
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(tasks, 'tasks')}>
+              <Icons.Download /> Export Tasks
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(taskAssignments, 'task_assignments')}>
+              <Icons.Download /> Export Assignments
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(habitLogs, 'habit_logs')}>
+              <Icons.Download /> Export Habit Logs
+            </button>
+            <button className="btn btn-outline" onClick={() => exportToCSV(habitStreaks, 'habit_streaks')}>
+              <Icons.Download /> Export Streaks
+            </button>
+          </div>
 
-        // Start App
-        document.addEventListener('DOMContentLoaded', App.init);
+          <div className="grid-2">
+            <div className="card">
+              <h3 className="card-title">Task Completion Trend</h3>
+              <div className="chart-container">
+                <canvas id="trendChart"></canvas>
+              </div>
+            </div>
+            <div className="card">
+              <h3 className="card-title">User Distribution</h3>
+              <div className="chart-container">
+                <canvas id="roleChart"></canvas>
+              </div>
+            </div>
+          </div>
 
-    </script>
+          <div className="card">
+            <h3 className="card-title">Daily Habit Engagement (Last 14 Days)</h3>
+            <div className="chart-container">
+              <canvas id="habitChart"></canvas>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Settings Page
+    function SettingsPage() {
+      return (
+        <div>
+          <div className="page-header">
+            <h1 className="page-title">Settings</h1>
+            <p className="page-subtitle">Dashboard configuration</p>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">Database Connection</h3>
+            <p style={{ marginBottom: '1rem', color: 'hsl(var(--muted-foreground))' }}>Connected to Supabase</p>
+            <div className="form-group">
+              <label className="form-label">Supabase URL</label>
+              <input className="form-input" value={supabaseUrl} readOnly />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <span className="badge badge-success">Connected</span>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">About</h3>
+            <p style={{ color: 'hsl(var(--muted-foreground))' }}>
+              Heartfulness L.A.M.P Admin Dashboard v1.0<br />
+              A minimal, serene interface for managing the Self-Development Intervention program.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Main App
+    function App() {
+      const [currentPage, setCurrentPage] = useState('dashboard');
+      const data = useSupabaseData();
+
+      const renderPage = () => {
+        switch (currentPage) {
+          case 'dashboard': return <DashboardPage data={data} />;
+          case 'users': return <UsersPage data={data} />;
+          case 'assignments': return <AssignmentsPage data={data} />;
+          case 'tasks': return <TasksPage data={data} />;
+          case 'habits': return <HabitsPage data={data} />;
+          case 'qa': return <QAPage data={data} />;
+          case 'achievements': return <AchievementsPage data={data} />;
+          case 'analytics': return <AnalyticsPage data={data} />;
+          case 'settings': return <SettingsPage />;
+          default: return <DashboardPage data={data} />;
+        }
+      };
+
+      return (
+        <div className="app-container">
+          <Sidebar currentPage={currentPage} setPage={setCurrentPage} />
+          <main className="main-content">
+            {renderPage()}
+          </main>
+        </div>
+      );
+    }
+
+    // Render
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
