@@ -671,25 +671,28 @@
             const hash = window.location.hash;
             const isRecovery = hash && hash.includes('type=recovery');
 
-            // CRITICAL SECURITY: Immediately clean URL hash if it contains sensitive tokens
-            if (hash && (hash.includes('access_token') || hash.includes('type=magiclink'))) {
+            // 1. GET SESSION (Supabase reads URL hash here)
+            const { data: { session } } = await client.auth.getSession();
+
+            // 2. IMMEDIATE URL SANITATION (Security Fix)
+            // Once we have the session, the hash is no longer needed.
+            // We strip it immediately so it cannot be copied/shared.
+            if (session && window.location.hash) {
                 history.replaceState(null, null, window.location.pathname);
             }
 
-            const { data: { session } } = await client.auth.getSession();
-
+            // 3. APP LOGIC
             if (session) {
-                // If it is a PASSWORD RESET (Recovery) link, force the Set Password screen
+                // If Recovery Flow -> Show Set Password
                 if (isRecovery) {
                     showSetPassword();
                 } 
-                // Otherwise, normal login (Magic Link or Password) -> Go to Dashboard
+                // Else -> Show Dashboard
                 else {
                     showDashboard(session.user);
                 }
             } else {
                 document.getElementById('loading-overlay').style.display = 'none';
-                // Handle expired recovery links
                 if (isRecovery) document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
             }
         });
