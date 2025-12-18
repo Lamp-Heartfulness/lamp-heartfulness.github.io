@@ -1091,62 +1091,22 @@
         let DB = { users: [], tasks: [], habits: [], t_assign: [], h_assign: [], cp: [], qs: [], streaks: [] };
         let REPORT_DATA = [];
 
-        // GLOBAL: Clear Hash immediately to prevent sharing & cleanup URL
-        // Executing this outside 'load' ensures it happens ASAP.
-        if (window.location.hash) {
-            const hasType = window.location.hash.includes('type=');
-            // Only clear if it looks like an Auth hash to avoid breaking other routing
-            if (hasType || window.location.hash.includes('access_token')) {
-                history.replaceState(null, null, window.location.pathname);
-            }
-        }
-
         // INIT
         window.addEventListener('load', async () => {
             // Priority: Check for Recovery OR Magic Link Hash FIRST
-            // Note: We already cleared the visual URL, but we need to capture the INTENT if possible?
-            // Actually, if we clear it, Supabase might not see it? 
-            // WAIT. Supabase client init might need the hash.
-            // If we clear it here, and verify later, Supabase might miss it.
-            // BETTER: Let Supabase parse it, THEN clear it.
-            // But User creates client at top.
-
-            // Re-think: Supabase parses on 'createClient' or first 'getSession'.
-            // If we clear it NOW, Supabase won't see it.
-            // We must clear it AFTER Supabase processes it, but VISUALLY hide it?
-
-            // Actually, `window.location.hash` read inside 'load' will be empty if we clear it here.
-            // The user problem is they copy it.
-
-            // Solution: Capture hash logic is unrelated. Supabase handles the session hydration automatically from the URL.
-            // If we strip it from the Browser History, does window.location still have it for the running script?
-            // Yes, until the next nav. But `createClient` uses `window.location` references.
-
-            // Compromise: We SHOULD clear it in 'load' but essentially as the FIRST step, assuming Supabase auto-detects.
-            // But the user says "friend opens it and sees set password".
-            // Implementation: We will keep it inside 'load' but strictly check 'setup_complete'.
-
-            // Reverting the "Move to Global" idea if it risks breaking Auth.
-            // Instead, I'll trust the previous fix (window.location.pathname) but Verify it strictly.
-            // Wait, the user said "refreshing shows set password".
-
-            // OK, I will keep the clearing inside 'load' but ensure correct `setup_complete` logic.
-            // The previous 'replaceState' fix (Step 658) WAS correct for visual clearing.
-            // The "Loop" is the main issue.
-
-            const hash = window.location.hash; // Capture for manual checks if needed
+            const hash = window.location.hash;
             const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
 
-            // Clear Hash immediately
-            if (window.location.hash) {
-                history.replaceState(null, null, window.location.pathname);
-            }
-
-            // 2. Initialize Session
+            // 1. Initialize Session directly (let Supabase read the hash)
             const { data: { session } } = await client.auth.getSession();
 
-            // 3. Logic based on Session State
+            // 2. Logic based on Session State
             if (session) {
+                // NOW we can clear the hash visually, as Supabase has consumed it
+                if (window.location.hash) {
+                    history.replaceState(null, null, window.location.pathname);
+                }
+
                 const amr = session.user?.amr || [];
                 const isPasswordLogin = amr.some(r => r.method === 'password');
                 const meta = session.user?.user_metadata || {};
@@ -1162,8 +1122,6 @@
                     if (hasSetup) {
                         // User HAS a password but used Magic Link (maybe by mistake or trying to bypass).
                         // STRICT SECURITY: Do not allow dashboard. Force them to login with password.
-                        // Also fixes the "Refresh loop" -> if they refresh, they claim 'otp' session, but we know they have a password.
-                        // So we sign them out.
                         alert("For security, please sign in using your Password.");
                         await client.auth.signOut();
                         document.getElementById('loading-overlay').style.display = 'none';
