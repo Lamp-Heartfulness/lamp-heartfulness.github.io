@@ -684,11 +684,10 @@
                 if (isPasswordLogin) {
                     showDashboard(session.user);
                 } else {
+                    // Logic check:
+                    // If user has set up a password but is using magic link, we now ALLOW them in (removed block)
                     if (hasSetup) {
-                        alert("For security, please sign in using your Password.");
-                        await client.auth.signOut();
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        window.location.reload();
+                        showDashboard(session.user);
                     } else {
                         showSetPassword();
                     }
@@ -739,7 +738,13 @@
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
             btn.disabled = true; btn.innerText = "Sending..."; msg.innerText = "";
-            const { data, error } = await client.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: window.location.href } });
+            const { data, error } = await client.auth.signInWithOtp({ 
+                email: email, 
+                options: { 
+                    shouldCreateUser: false, 
+                    emailRedirectTo: 'https://lamp-heartfulness.github.io' // REDIRECT KEPT AS REQUESTED
+                } 
+            });
             btn.disabled = false; btn.innerText = "Send OTP";
             if (error) {
                 msg.style.color = 'red'; msg.innerText = error.message;
