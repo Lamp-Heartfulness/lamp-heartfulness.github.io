@@ -669,38 +669,29 @@
         // INIT
         window.addEventListener('load', async () => {
             const hash = window.location.hash;
-            const isRecovery = hash && hash.includes('type=recovery');
+            const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
 
-            // 1. GET SESSION (Supabase reads URL hash here)
             const { data: { session } } = await client.auth.getSession();
 
-            // 2. IMMEDIATE URL SANITATION (Security Fix)
-            if (session && window.location.hash) {
-                history.replaceState(null, null, window.location.pathname);
-            }
-
-            // 3. APP LOGIC
             if (session) {
-                // If Recovery Flow -> Show Set Password
-                if (isRecovery) {
-                    showSetPassword();
-                } 
-                // Else -> Show Dashboard
-                else {
-                    const amr = session.user?.amr || [];
-                    const isPasswordLogin = amr.some(r => r.method === 'password');
-                    const meta = session.user?.user_metadata || {};
-                    const hasSetup = meta.setup_complete === true;
+                if (window.location.hash) history.replaceState(null, null, window.location.pathname);
 
-                    // STRICT SECURITY: If user has a password but used Magic Link, force logout
-                    if (!isPasswordLogin && hasSetup) {
+                const amr = session.user?.amr || [];
+                const isPasswordLogin = amr.some(r => r.method === 'password');
+                const meta = session.user?.user_metadata || {};
+                const hasSetup = meta.setup_complete === true;
+
+                if (isPasswordLogin) {
+                    showDashboard(session.user);
+                } else {
+                    if (hasSetup) {
                         alert("For security, please sign in using your Password.");
                         await client.auth.signOut();
-                        window.location.href = window.location.pathname;
-                        return;
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        window.location.reload();
+                    } else {
+                        showSetPassword();
                     }
-
-                    showDashboard(session.user);
                 }
             } else {
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -723,14 +714,14 @@
 
         function showSetPassword() {
             document.getElementById('loading-overlay').style.display = 'none';
-            document.getElementById('app-auth').classList.remove('hidden'); // Ensure auth container is visible
             document.getElementById('view-signin').classList.add('hidden');
             document.getElementById('view-setpass').classList.remove('hidden');
         }
 
         async function handleLogout() {
             await client.auth.signOut();
-            window.location.href = window.location.pathname; 
+            window.location.hash = '';
+            window.location.reload();
         }
 
         async function handleLogin(e) {
@@ -748,16 +739,13 @@
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
             btn.disabled = true; btn.innerText = "Sending..."; msg.innerText = "";
-            
-            // --- FIX IS HERE: shouldCreateUser: true to allow NEW users (like you) to register ---
             const { data, error } = await client.auth.signInWithOtp({ 
                 email: email, 
                 options: { 
-                    shouldCreateUser: true, // Allow registration
-                    emailRedirectTo: 'https://lamp-heartfulness.github.io' 
+                    shouldCreateUser: false, 
+                    emailRedirectTo: 'https://lamp-heartfulness.github.io' // UPDATED REDIRECT HERE
                 } 
             });
-            
             btn.disabled = false; btn.innerText = "Send OTP";
             if (error) {
                 msg.style.color = 'red'; msg.innerText = error.message;
