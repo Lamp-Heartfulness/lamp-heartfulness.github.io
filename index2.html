@@ -1098,31 +1098,47 @@
             // Treat 'recovery', 'magiclink', and 'signup' as triggers for Set Password view
             const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
 
-            // Initialize Session
+            // 1. Clear Hash immediately to prevent sharing & cleanup URL
+            if (window.location.hash) {
+                history.replaceState(null, null, ' ');
+            }
+
+            // 2. Initialize Session
             const { data: { session } } = await client.auth.getSession();
 
-            // LOGIC: Only show UI if we have a valid session.
-            // If the link is invalid/expired, 'session' will be null -> fallback to Login.
+            // 3. Logic based on Session State
             if (session) {
-                // Check Authentication Method
                 const amr = session.user?.amr || [];
                 const isPasswordLogin = amr.some(r => r.method === 'password');
+                const meta = session.user?.user_metadata || {};
+                const hasSetup = meta.setup_complete === true;
 
-                // If user authenticated via Password -> Show Dashboard
-                // If user authenticated via OTP/Magic Link -> Force Set Password
                 if (isPasswordLogin) {
+                    // Valid Password Session -> ENTER
                     showDashboard(session.user);
                 } else {
-                    console.log("OTP/Recovery Session detected - Enforcing Password Set");
-                    showSetPassword();
+                    // Valid Session BUT via OTP/Magic Link
+                    console.log("OTP Session. Setup Complete?", hasSetup);
+
+                    if (hasSetup) {
+                        // User HAS a password but used Magic Link (maybe by mistake or trying to bypass).
+                        // STRICT SECURITY: Do not allow dashboard. Force them to login with password.
+                        // Also fixes the "Refresh loop" -> if they refresh, they claim 'otp' session, but we know they have a password.
+                        // So we sign them out.
+                        alert("For security, please sign in using your Password.");
+                        await client.auth.signOut();
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        window.location.reload();
+                    } else {
+                        // User DOES NOT have a password set (First time / Recovery).
+                        // Allow them to set it.
+                        showSetPassword();
+                    }
                 }
             } else {
-                // No Session (or Expired Token) -> Login Screen
-                // Even if hash contained 'type=recovery', if session is null, the token is dead.
+                // No Session -> Login Screen
                 document.getElementById('loading-overlay').style.display = 'none';
-
                 if (isRecovery) {
-                    // Optional: Show error that link expired
                     document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
                 }
             }
@@ -1253,7 +1269,10 @@
             const password = document.getElementById('new-password').value;
             const msg = document.getElementById('auth-msg');
 
-            const { error } = await client.auth.updateUser({ password });
+            const { error } = await client.auth.updateUser({
+                password: password,
+                data: { setup_complete: true } // Mark user as fully set up
+            });
 
             if (error) {
                 msg.style.color = 'red';
