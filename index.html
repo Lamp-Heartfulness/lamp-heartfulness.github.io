@@ -46,7 +46,8 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            display: flex; /* Ensure body is flex for layout */
+            display: flex;
+            /* Ensure body is flex for layout */
         }
 
         /* --- AUTH LAYOUT --- */
@@ -57,7 +58,8 @@
             height: 100%;
             width: 100%;
             background: var(--bg-page);
-            position: absolute; /* Overlay logic */
+            position: absolute;
+            /* Overlay logic */
             z-index: 50;
         }
 
@@ -227,8 +229,19 @@
             border: 1px solid var(--border);
         }
 
-        h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 600; color: #111827; }
-        h3 { font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; color: #374151; }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #374151;
+        }
 
         /* --- FORMS --- */
         .form-grid {
@@ -237,7 +250,10 @@
             gap: 1rem;
         }
 
-        .input-group { margin-bottom: 1rem; }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
         .input-group label {
             display: block;
             font-size: 0.85rem;
@@ -271,32 +287,133 @@
             font-size: 0.9rem;
         }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-secondary { background: white; border: 1px solid #D1D5DB; color: var(--text-main); }
-        .btn-secondary:hover { border-color: var(--text-muted); }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #D1D5DB;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+        }
 
         /* --- TABLES --- */
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { text-align: left; padding: 1rem; background: #F9FAFB; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
-        td { padding: 1rem; border-bottom: 1px solid var(--border); color: #4B5563; }
-        .badge { padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            background: #F9FAFB;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            color: #4B5563;
+        }
+
+        .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
         /* --- UTILS --- */
-        .hidden { display: none !important; }
-        .view { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden {
+            display: none !important;
+        }
+
+        .view {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* --- ANALYTICS --- */
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-        .kpi-card { background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .kpi-val { font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; }
-        .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .kpi-val {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
         /* --- LOADING --- */
-        #loading-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #E5E7EB; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E5E7EB;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -311,11 +428,13 @@
                 <form id="form-magic" onsubmit="handleSendOtp(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email address</label>
-                        <input id="otp-email" name="email" type="email" class="form-control" required placeholder="you@example.com">
+                        <input id="otp-email" name="email" type="email" class="form-control" required
+                            placeholder="you@example.com">
                     </div>
                     <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send OTP</button>
                     <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('password')" style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
+                        <a href="#" onclick="switchAuth('password')"
+                            style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
                     </p>
                 </form>
 
@@ -328,9 +447,11 @@
                     <form onsubmit="handleVerifyOtp(event)">
                         <div class="input-group" style="text-align:left">
                             <label>6-digit Code (if available)</label>
-                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center">
+                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6"
+                                style="letter-spacing:4px; font-size:1.2rem; text-align:center">
                         </div>
-                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set Password</button>
+                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set
+                            Password</button>
                         <p style="margin-top:1rem; font-size:0.9rem">
                             <a href="#" onclick="location.reload()" style="color:#64748b">Back</a>
                         </p>
@@ -340,7 +461,8 @@
                 <form id="form-password" class="hidden" onsubmit="handleLogin(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email</label>
-                        <input name="email" type="email" class="form-control" required placeholder="admin@heartfulness.org">
+                        <input name="email" type="email" class="form-control" required
+                            placeholder="admin@heartfulness.org">
                     </div>
                     <div class="input-group" style="text-align:left">
                         <label>Password</label>
@@ -348,7 +470,8 @@
                     </div>
                     <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Sign In</button>
                     <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('magic')" style="color:#0F766E; text-decoration:none; font-weight:500">Send Magic Link</a>
+                        <a href="#" onclick="switchAuth('magic')"
+                            style="color:#0F766E; text-decoration:none; font-weight:500">Send Magic Link</a>
                     </p>
                 </form>
             </div>
@@ -361,7 +484,8 @@
                         <label>New Password</label>
                         <input type="password" id="new-password" class="form-control" required minlength="6">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update Password</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update
+                        Password</button>
                 </form>
             </div>
 
@@ -375,22 +499,31 @@
                 <span>LAMP <span style="font-weight:400; color:var(--text-muted)">Admin</span></span>
             </div>
             <nav id="sidebar-nav">
-                <div class="nav-item active" data-target="dashboard" onclick="router('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</div>
-                <div class="nav-item" data-target="users" onclick="router('users')"><i class="fa-solid fa-users"></i> Users</div>
-                <div class="nav-item" data-target="assignments" onclick="router('assignments')"><i class="fa-solid fa-handshake"></i> Mentorship</div>
-                <div class="nav-item" data-target="curriculum" onclick="router('curriculum')"><i class="fa-solid fa-book-open"></i> Tasks & Habits</div>
-                <div class="nav-item" data-target="qa" onclick="router('qa')"><i class="fa-solid fa-comments"></i> Q&A Moderation</div>
-                <div class="nav-item" data-target="reports" onclick="router('reports')"><i class="fa-solid fa-clipboard-check"></i> Smart Reports</div>
-                <div class="nav-item" data-target="exports" onclick="router('exports')"><i class="fa-solid fa-file-export"></i> Data Export</div>
+                <div class="nav-item active" data-target="dashboard" onclick="router('dashboard')"><i
+                        class="fa-solid fa-chart-line"></i> Dashboard</div>
+                <div class="nav-item" data-target="users" onclick="router('users')"><i class="fa-solid fa-users"></i>
+                    Users</div>
+                <div class="nav-item" data-target="assignments" onclick="router('assignments')"><i
+                        class="fa-solid fa-handshake"></i> Mentorship</div>
+                <div class="nav-item" data-target="curriculum" onclick="router('curriculum')"><i
+                        class="fa-solid fa-book-open"></i> Tasks & Habits</div>
+                <div class="nav-item" data-target="qa" onclick="router('qa')"><i class="fa-solid fa-comments"></i> Q&A
+                    Moderation</div>
+                <div class="nav-item" data-target="reports" onclick="router('reports')"><i
+                        class="fa-solid fa-clipboard-check"></i> Smart Reports</div>
+                <div class="nav-item" data-target="exports" onclick="router('exports')"><i
+                        class="fa-solid fa-file-export"></i> Data Export</div>
             </nav>
             <div style="flex:1"></div>
-            <div class="nav-item" style="color:var(--primary)" onclick="refreshData()"><i class="fa-solid fa-sync"></i> Refresh Data</div>
+            <div class="nav-item" style="color:var(--primary)" onclick="refreshData()"><i class="fa-solid fa-sync"></i>
+                Refresh Data</div>
         </aside>
 
         <main>
             <header class="top-header">
                 <div>
-                    <h1 style="font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:0.25rem">Heartfulness</h1>
+                    <h1 style="font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:0.25rem">Heartfulness
+                    </h1>
                     <p style="color:#64748b; font-size:0.875rem">Learning and Mentorship Program</p>
                 </div>
 
@@ -398,14 +531,18 @@
                     <div class="profile-widget">
                         <div class="avatar">AD</div>
                         <div class="p-info">
-                            <span class="p-name" style="display:block; font-size:0.875rem; font-weight:600">Admin User</span>
-                            <span class="p-role" style="display:block; font-size:0.7rem; color:var(--text-muted)">Super Admin</span>
+                            <span class="p-name" style="display:block; font-size:0.875rem; font-weight:600">Admin
+                                User</span>
+                            <span class="p-role" style="display:block; font-size:0.7rem; color:var(--text-muted)">Super
+                                Admin</span>
                         </div>
                         <div class="logout-pop">
-                            <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #e2e8f0">
+                            <div
+                                style="font-size:0.85rem; color:#64748b; margin-bottom:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #e2e8f0">
                                 Logged in as Admin
                             </div>
-                            <button onclick="handleLogout()" style="width:100%; text-align:left; padding:0.5rem; background:none; border:none; color:#ef4444; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
+                            <button onclick="handleLogout()"
+                                style="width:100%; text-align:left; padding:0.5rem; background:none; border:none; color:#ef4444; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
                             </button>
                         </div>
@@ -419,12 +556,14 @@
                     <div class="kpi-card">
                         <div class="kpi-label">Total Users</div>
                         <div class="kpi-val" id="kpi-users">-</div>
-                        <div id="kpi-breakdown" style="font-size:0.8rem; color:#6B7280; margin-top:0.5rem; line-height:1.4"></div>
+                        <div id="kpi-breakdown"
+                            style="font-size:0.8rem; color:#6B7280; margin-top:0.5rem; line-height:1.4"></div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Active Tasks</div>
                         <div class="kpi-val" id="kpi-tasks">-</div>
-                        <div style="font-size:0.8rem; color:green; margin-top:0.5rem"><i class="fa-solid fa-arrow-trend-up"></i> Live Tracking</div>
+                        <div style="font-size:0.8rem; color:green; margin-top:0.5rem"><i
+                                class="fa-solid fa-arrow-trend-up"></i> Live Tracking</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Pending Q&A</div>
@@ -439,29 +578,71 @@
                 </div>
 
                 <h3 style="margin-top:2rem; margin-bottom:1rem">Real-Time Analytics Console</h3>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem">
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-users-gear"></i> Role Distribution</h4><div style="height:250px"><canvas id="c1_roles"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-wave-square"></i> Activity Pulse (7 Days)</h4><div style="height:250px"><canvas id="c2_activity"></canvas></div></div>
-                    <div class="card" style="min-height:300px; grid-column: span 2"><h4><i class="fa-solid fa-microscope"></i> Protégé Performance Matrix</h4><div style="height:250px"><canvas id="c3_scatter"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-chart-pie"></i> Global Task Status</h4><div style="height:250px"><canvas id="c4_taskstatus"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-bars-progress"></i> Task Velocity (Top Users)</h4><div style="height:250px"><canvas id="c5_velocity"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-chalkboard-user"></i> Chaperone Load</h4><div style="height:250px"><canvas id="c6_chaperone"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-fire"></i> Top Habit Streaks</h4><div style="height:250px"><canvas id="c7_habits"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-map-location-dot"></i> User Locations</h4><div style="height:250px"><canvas id="c8_location"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-venus-mars"></i> Demographics</h4><div style="height:250px"><canvas id="c9_gender"></canvas></div></div>
-                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-comments"></i> Q&A Moderation</h4><div style="height:250px"><canvas id="c10_qa"></canvas></div></div>
+                <div
+                    style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem">
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-users-gear"></i> Role Distribution</h4>
+                        <div style="height:250px"><canvas id="c1_roles"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-wave-square"></i> Activity Pulse (7 Days)</h4>
+                        <div style="height:250px"><canvas id="c2_activity"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px; grid-column: span 2">
+                        <h4><i class="fa-solid fa-microscope"></i> Protégé Performance Matrix</h4>
+                        <div style="height:250px"><canvas id="c3_scatter"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-chart-pie"></i> Global Task Status</h4>
+                        <div style="height:250px"><canvas id="c4_taskstatus"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-bars-progress"></i> Task Velocity (Top Users)</h4>
+                        <div style="height:250px"><canvas id="c5_velocity"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-chalkboard-user"></i> Chaperone Load</h4>
+                        <div style="height:250px"><canvas id="c6_chaperone"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-fire"></i> Top Habit Streaks</h4>
+                        <div style="height:250px"><canvas id="c7_habits"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-map-location-dot"></i> User Locations</h4>
+                        <div style="height:250px"><canvas id="c8_location"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-venus-mars"></i> Demographics</h4>
+                        <div style="height:250px"><canvas id="c9_gender"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-comments"></i> Q&A Moderation</h4>
+                        <div style="height:250px"><canvas id="c10_qa"></canvas></div>
+                    </div>
+                    <div class="card" style="min-height:300px">
+                        <h4><i class="fa-solid fa-trophy"></i> Top User Streaks (Leaderboard)</h4>
+                        <div style="height:250px"><canvas id="c11_streak_leaderboard"></canvas></div>
+                    </div>
                 </div>
             </div>
 
             <div id="view-users" class="view hidden">
-                <div id="modal-import" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center">
+                <div id="modal-import"
+                    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center">
                     <div class="card" style="width:400px; max-width:90%; position:relative">
-                        <button onclick="document.getElementById('modal-import').style.display='none'" style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:1.2rem; cursor:pointer">&times;</button>
+                        <button onclick="document.getElementById('modal-import').style.display='none'"
+                            style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:1.2rem; cursor:pointer">&times;</button>
                         <h3>Bulk Import Users</h3>
-                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Upload a CSV file with headers: <code>Name, email, role</code></p>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Upload a CSV file with headers:
+                            <code>Name, email, role</code>
+                        </p>
                         <input type="file" id="csv-file" accept=".csv" class="form-control" style="margin-bottom:1rem">
-                        <button class="btn-primary" style="width:100%" onclick="handleBulkImport()">Start Import</button>
-                        <div id="import-log" style="margin-top:1rem; font-size:0.85rem; max-height:150px; overflow-y:auto; color:#4B5563"></div>
+                        <button class="btn-primary" style="width:100%" onclick="handleBulkImport()">Start
+                            Import</button>
+                        <div id="import-log"
+                            style="margin-top:1rem; font-size:0.85rem; max-height:150px; overflow-y:auto; color:#4B5563">
+                        </div>
                     </div>
                 </div>
 
@@ -469,14 +650,27 @@
                     <h3><i class="fa-solid fa-user-plus"></i> Add New User</h3>
                     <form onsubmit="handleCreateUser(event)">
                         <div class="form-grid">
-                            <div class="input-group"><label>Full Name</label><input name="Name" class="form-control" required></div>
-                            <div class="input-group"><label>Email</label><input name="email" type="email" class="form-control"></div>
-                            <div class="input-group"><label>Role</label><select name="role" class="form-control"><option value="protege">Protégé</option><option value="chaperone">Chaperone</option><option value="admin">Admin</option></select></div>
-                            <div class="input-group"><label>HFN ID</label><input name="HFN_ID" class="form-control"></div>
-                            <div class="input-group"><label>Age</label><input name="Age" type="number" class="form-control"></div>
-                            <div class="input-group"><label>Gender</label><select name="Gender" class="form-control"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                            <div class="input-group"><label>Full Name</label><input name="Name" class="form-control"
+                                    required></div>
+                            <div class="input-group"><label>Email</label><input name="email" type="email"
+                                    class="form-control"></div>
+                            <div class="input-group"><label>Role</label><select name="role" class="form-control">
+                                    <option value="protege">Protégé</option>
+                                    <option value="chaperone">Chaperone</option>
+                                    <option value="admin">Admin</option>
+                                </select></div>
+                            <div class="input-group"><label>HFN ID</label><input name="HFN_ID" class="form-control">
+                            </div>
+                            <div class="input-group"><label>Age</label><input name="Age" type="number"
+                                    class="form-control"></div>
+                            <div class="input-group"><label>Gender</label><select name="Gender" class="form-control">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select></div>
                             <div class="input-group"><label>Phone</label><input name="phone" class="form-control"></div>
-                            <div class="input-group"><label>Location</label><input name="location" class="form-control"></div>
+                            <div class="input-group"><label>Location</label><input name="location" class="form-control">
+                            </div>
                         </div>
                         <button type="submit" class="btn-primary">Create User</button>
                     </form>
@@ -484,13 +678,25 @@
                 <div class="card">
                     <h3>User Directory</h3>
                     <div style="display:flex; gap:0.5rem">
-                        <button class="btn-primary" onclick="document.getElementById('modal-import').style.display='flex'"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
-                        <button class="btn-secondary" onclick="exportData('Users')"><i class="fa-solid fa-download"></i> CSV</button>
+                        <button class="btn-primary"
+                            onclick="document.getElementById('modal-import').style.display='flex'"><i
+                                class="fa-solid fa-file-csv"></i> Import CSV</button>
+                        <button class="btn-secondary" onclick="exportData('Users')"><i class="fa-solid fa-download"></i>
+                            CSV</button>
                     </div>
                 </div>
                 <div style="overflow-x:auto">
                     <table id="table-users">
-                        <thead><tr><th>Name</th><th>Role</th><th>HFN ID</th><th>Location</th><th>Contact</th><th>Actions</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>HFN ID</th>
+                                <th>Location</th>
+                                <th>Contact</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -500,15 +706,24 @@
                 <div class="card">
                     <h3>Assign Chaperone</h3>
                     <div class="form-grid" style="align-items:end">
-                        <div class="input-group"><label>Chaperone</label><select id="sel-chap" class="form-control"></select></div>
-                        <div class="input-group"><label>Protégé</label><select id="sel-prot" class="form-control"></select></div>
-                        <div class="input-group"><button class="btn-primary" style="width:100%" onclick="handleLinkCP()">Link Profiles</button></div>
+                        <div class="input-group"><label>Chaperone</label><select id="sel-chap"
+                                class="form-control"></select></div>
+                        <div class="input-group"><label>Protégé</label><select id="sel-prot"
+                                class="form-control"></select></div>
+                        <div class="input-group"><button class="btn-primary" style="width:100%"
+                                onclick="handleLinkCP()">Link Profiles</button></div>
                     </div>
                 </div>
                 <div class="card">
                     <h3>Mentorship Links</h3>
                     <table id="table-cp">
-                        <thead><tr><th>Chaperone</th><th>Protégé</th><th>Actions</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Chaperone</th>
+                                <th>Protégé</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -525,27 +740,47 @@
                         <h3>Create Task</h3>
                         <form onsubmit="handleCreateTask(event)">
                             <div class="form-grid">
-                                <div class="input-group"><label>Task Name</label><input name="name" class="form-control" required></div>
-                                <div class="input-group"><label>Type</label><select name="type" class="form-control"><option value="knowledge">Knowledge</option><option value="experimental">Experimental</option></select></div>
-                                <div class="input-group"><label>Deadline</label><input name="deadline" type="date" class="form-control"></div>
-                                <div class="input-group"><label>Video URL</label><input name="video_url" class="form-control" placeholder="https://youtube..."></div>
-                                <div class="input-group"><label>Document URL</label><input name="document_url" class="form-control" placeholder="https://drive..."></div>
-                                <div class="input-group"><label>Photos (Comma separated URLs)</label><input name="photos_str" class="form-control"></div>
-                                <div class="input-group"><label>Description</label><input name="description" class="form-control"></div>
+                                <div class="input-group"><label>Task Name</label><input name="name" class="form-control"
+                                        required></div>
+                                <div class="input-group"><label>Type</label><select name="type" class="form-control">
+                                        <option value="knowledge">Knowledge</option>
+                                        <option value="experimental">Experimental</option>
+                                    </select></div>
+                                <div class="input-group"><label>Deadline</label><input name="deadline" type="date"
+                                        class="form-control"></div>
+                                <div class="input-group"><label>Video URL</label><input name="video_url"
+                                        class="form-control" placeholder="https://youtube..."></div>
+                                <div class="input-group"><label>Document URL</label><input name="document_url"
+                                        class="form-control" placeholder="https://drive..."></div>
+                                <div class="input-group"><label>Photos (Comma separated URLs)</label><input
+                                        name="photos_str" class="form-control"></div>
+                                <div class="input-group"><label>Description</label><input name="description"
+                                        class="form-control"></div>
                             </div>
                             <button type="submit" class="btn-primary">Create Task</button>
                         </form>
                         <hr style="margin:1.5rem 0; border-color:var(--border)">
                         <h3>Assign Task</h3>
                         <div class="form-grid" style="align-items:end">
-                            <div class="input-group"><label>Task</label><select id="sel-task" class="form-control"></select></div>
-                            <div class="input-group"><label>Protégé</label><select id="sel-user-task" class="form-control"></select></div>
-                            <div class="input-group"><button class="btn-secondary" style="width:100%" onclick="handleAssignTask()">Assign</button></div>
+                            <div class="input-group"><label>Task</label><select id="sel-task"
+                                    class="form-control"></select></div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-task"
+                                    class="form-control"></select></div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%"
+                                    onclick="handleAssignTask()">Assign</button></div>
                         </div>
                     </div>
                     <div class="card">
                         <table id="table-tasks-active">
-                            <thead><tr><th>Task</th><th>User</th><th>Assigned By</th><th>Deadline</th><th>Status</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>User</th>
+                                    <th>Assigned By</th>
+                                    <th>Deadline</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -556,22 +791,34 @@
                         <h3>Create Habit</h3>
                         <form onsubmit="handleCreateHabit(event)">
                             <div class="form-grid">
-                                <div class="input-group"><label>Habit Name</label><input name="name" class="form-control" required></div>
-                                <div class="input-group"><label>Description</label><input name="description" class="form-control"></div>
+                                <div class="input-group"><label>Habit Name</label><input name="name"
+                                        class="form-control" required></div>
+                                <div class="input-group"><label>Description</label><input name="description"
+                                        class="form-control"></div>
                             </div>
-                            <button type="submit" class="btn-primary" style="background:var(--success)">Create Habit</button>
+                            <button type="submit" class="btn-primary" style="background:var(--success)">Create
+                                Habit</button>
                         </form>
                         <hr style="margin:1.5rem 0; border-color:var(--border)">
                         <h3>Assign Habit</h3>
                         <div class="form-grid" style="align-items:end">
-                            <div class="input-group"><label>Habit</label><select id="sel-habit" class="form-control"></select></div>
-                            <div class="input-group"><label>Protégé</label><select id="sel-user-habit" class="form-control"></select></div>
-                            <div class="input-group"><button class="btn-secondary" style="width:100%" onclick="handleAssignHabit()">Assign</button></div>
+                            <div class="input-group"><label>Habit</label><select id="sel-habit"
+                                    class="form-control"></select></div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-habit"
+                                    class="form-control"></select></div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%"
+                                    onclick="handleAssignHabit()">Assign</button></div>
                         </div>
                     </div>
                     <div class="card">
                         <table id="table-habits-active">
-                            <thead><tr><th>Habit</th><th>User</th><th>Assigned At</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Habit</th>
+                                    <th>User</th>
+                                    <th>Assigned At</th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -582,7 +829,15 @@
                 <div class="card">
                     <h3>Moderation Queue</h3>
                     <table id="table-qa">
-                        <thead><tr><th>Question</th><th>User</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>User</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -591,21 +846,35 @@
             <div id="view-reports" class="view view-centered hidden">
                 <div class="card">
                     <h3><i class="fa-solid fa-graduation-cap"></i> Qualified Protégés Report</h3>
-                    <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks before deadline and meet consistency criteria.</p>
+                    <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks
+                        before deadline and meet consistency criteria.</p>
 
                     <div class="form-grid" style="align-items:end; margin-bottom:1.5rem">
-                        <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons" type="number" value="80" class="form-control"></div>
-                        <div class="input-group"><label>Task Deadline Check</label><select class="form-control" disabled><option>Must be before deadline</option></select></div>
-                        <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run Analysis</button></div>
+                        <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons"
+                                type="number" value="80" class="form-control"></div>
+                        <div class="input-group"><label>Task Deadline Check</label><select class="form-control"
+                                disabled>
+                                <option>Must be before deadline</option>
+                            </select></div>
+                        <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run
+                                Analysis</button></div>
                     </div>
 
                     <div id="report-results" class="hidden">
                         <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
                             <h4>Results</h4>
-                            <button class="btn-secondary" onclick="exportReport()"><i class="fa-solid fa-file-export"></i> Download CSV</button>
+                            <button class="btn-secondary" onclick="exportReport()"><i
+                                    class="fa-solid fa-file-export"></i> Download CSV</button>
                         </div>
                         <table id="table-report">
-                            <thead><tr><th>Protégé</th><th>Task Status</th><th>Habit Consistency</th><th>Result</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Protégé</th>
+                                    <th>Task Status</th>
+                                    <th>Habit Consistency</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -617,7 +886,8 @@
                 <div class="form-grid">
                     <div class="card">
                         <h3><i class="fa-solid fa-users"></i> Users Data</h3>
-                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.</p>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.
+                        </p>
                         <button class="btn-secondary" onclick="exportData('users')">Download CSV</button>
                     </div>
                     <div class="card">
@@ -632,12 +902,14 @@
                     </div>
                     <div class="card">
                         <h3><i class="fa-solid fa-handshake"></i> Assignments</h3>
-                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.</p>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.
+                        </p>
                         <button class="btn-secondary" onclick="exportData('cp')">Download CSV</button>
                     </div>
                     <div class="card">
                         <h3><i class="fa-solid fa-clipboard-check"></i> Task Status</h3>
-                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.</p>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.
+                        </p>
                         <button class="btn-secondary" onclick="exportData('t_assign')">Download CSV</button>
                     </div>
                     <div class="card">
@@ -681,17 +953,15 @@
                 const meta = session.user?.user_metadata || {};
                 const hasSetup = meta.setup_complete === true;
 
-                if (isPasswordLogin) {
+                if (!hasSetup) {
+                    showSetPassword();
+                } else if (isPasswordLogin) {
                     showDashboard(session.user);
                 } else {
-                    if (hasSetup) {
-                        alert("For security, please sign in using your Password.");
-                        await client.auth.signOut();
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        window.location.reload();
-                    } else {
-                        showSetPassword();
-                    }
+                    alert("For security, please sign in using your Password.");
+                    await client.auth.signOut();
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    window.location.reload();
                 }
             } else {
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -739,12 +1009,12 @@
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
             btn.disabled = true; btn.innerText = "Sending..."; msg.innerText = "";
-            const { data, error } = await client.auth.signInWithOtp({ 
-                email: email, 
-                options: { 
-                    shouldCreateUser: false, 
+            const { data, error } = await client.auth.signInWithOtp({
+                email: email,
+                options: {
+                    shouldCreateUser: true,
                     emailRedirectTo: 'https://lamp-heartfulness.github.io' // UPDATED REDIRECT HERE
-                } 
+                }
             });
             btn.disabled = false; btn.innerText = "Send OTP";
             if (error) {
@@ -779,10 +1049,21 @@
             e.preventDefault();
             const password = document.getElementById('new-password').value;
             const msg = document.getElementById('auth-msg');
-            const { error } = await client.auth.updateUser({ password: password, data: { setup_complete: true } });
+            const { data: { user }, error } = await client.auth.updateUser({ password: password, data: { setup_complete: true } });
             if (error) {
                 msg.style.color = 'red'; msg.innerText = error.message;
             } else {
+                // SYNC ADMIN USER TO PUBLIC DB
+                if (user) {
+                    await client.from('Users').upsert([{
+                        id: user.id,
+                        email: user.email,
+                        Name: user.email.split('@')[0],
+                        role: 'admin',
+                        created_at: new Date().toISOString()
+                    }]);
+                }
+
                 await client.auth.signOut();
                 localStorage.clear(); sessionStorage.clear();
                 alert('Password updated successfully! Please sign in with your new password.');
@@ -817,7 +1098,32 @@
                     client.from('habit_streaks').select('*')
                 ]);
                 DB.users = results[0].data || []; DB.tasks = results[1].data || []; DB.habits = results[2].data || []; DB.t_assign = results[3].data || [];
+                DB.users = results[0].data || []; DB.tasks = results[1].data || []; DB.habits = results[2].data || []; DB.t_assign = results[3].data || [];
                 DB.h_assign = results[4].data || []; DB.cp = results[5].data || []; DB.qs = results[6].data || []; DB.streaks = results[7].data || [];
+
+                // SELF-REPAIR: Ensure current user is in DB so they are counted
+                const { data: { session } } = await client.auth.getSession();
+                if (session && session.user) {
+                    const me = DB.users.find(u => u.id === session.user.id);
+                    if (!me) {
+                        console.log("Self-repair: Inserting missing admin user");
+                        const newMe = {
+                            id: session.user.id,
+                            email: session.user.email,
+                            Name: session.user.email.split('@')[0],
+                            role: 'admin',
+                            created_at: new Date().toISOString()
+                        };
+                        const { error } = await client.from('Users').insert([newMe]);
+                        if (!error) DB.users.push(newMe);
+                    }
+                }
+
+                await cleanupDuplicates(); // Enforce 1-1 constraint
+                // Re-fetch cp to ensure UI is in sync if we cleaned up
+                const { data: cleanCP } = await client.from('chaperone_protege').select('*, chaperone:Users!chaperone_id(Name), protege:Users!protege_id(Name)');
+                if (cleanCP) DB.cp = cleanCP;
+
                 renderAll();
             } catch (e) { alert("Connection Error: " + e.message); }
         }
@@ -858,13 +1164,13 @@
             const roleCounts = { Admin: 0, Chaperone: 0, Protege: 0 }; DB.users.forEach(u => roleCounts[capitalize(u.role || 'protege')]++);
             chartInstances.c1 = new Chart(document.getElementById('c1_roles'), { type: 'polarArea', data: { labels: Object.keys(roleCounts), datasets: [{ data: Object.values(roleCounts), backgroundColor: [transparent(Colors.indigo), transparent(Colors.emerald), transparent(Colors.rose)], borderColor: [Colors.indigo, Colors.emerald, Colors.rose], borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: '#f1f5f9' }, ticks: { display: false } } } } });
 
-            const activity = {}; [...DB.tasks, ...DB.qs].forEach(x => { const d = new Date(x.created_at || Date.now()).toLocaleDateString('en-US', { weekday: 'short' }); activity[d] = (activity[d] || 0) + 1; });
+            const activity = {};[...DB.tasks, ...DB.qs].forEach(x => { const d = new Date(x.created_at || Date.now()).toLocaleDateString('en-US', { weekday: 'short' }); activity[d] = (activity[d] || 0) + 1; });
             const dLabs = Object.keys(activity).slice(-7); const dVals = Object.values(activity).slice(-7);
             chartInstances.c2 = new Chart(document.getElementById('c2_activity'), { type: 'line', data: { labels: dLabs.length ? dLabs : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'New Items', data: dVals.length ? dVals : [2, 4, 6, 3, 7, 5, 8], borderColor: Colors.indigo, backgroundColor: (ctx) => { const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 250); g.addColorStop(0, Colors.indigo + '66'); g.addColorStop(1, Colors.indigo + '00'); return g; }, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5] }, beginAtZero: true } }, plugins: { legend: { display: false } } } });
 
             const scatterData = DB.users.filter(u => u.role === 'protege').map(u => { const tasksDone = DB.t_assign.filter(t => t.protege_id === u.id && t.status === 'completed').length; const streaks = DB.streaks.find(s => s.protege_id === u.id); return { x: tasksDone, y: streaks ? streaks.current_streak : 0, r: 6, user: u.Name }; });
             if (!scatterData.length) scatterData.push({ x: 0, y: 0, r: 0 });
-            chartInstances.c3 = new Chart(document.getElementById('c3_scatter'), { type: 'bubble', data: { datasets: [{ label: 'Students', data: scatterData, backgroundColor: Colors.violet + '99', borderColor: Colors.violet }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.user}: ${c.raw.x} Tasks, ${c.raw.y} Days` } } }, scales: { x: { title: { display: true, text: 'Tasks Done' } }, y: { title: { display: true, text: 'Streak Days' } } } } });
+            chartInstances.c3 = new Chart(document.getElementById('c3_scatter'), { type: 'bubble', data: { datasets: [{ label: 'Students', data: scatterData, backgroundColor: Colors.violet + '99', borderColor: Colors.violet }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.user}: ${c.raw.x} Tasks, ${c.raw.y} Days` } } }, scales: { x: { min: 0, title: { display: true, text: 'Tasks Done' } }, y: { min: 0, title: { display: true, text: 'Streak Days' } } } } });
 
             const tStats = { Completed: 0, Pending: 0, Overdue: 0 }; const now = new Date(); DB.t_assign.forEach(t => { if (t.status === 'completed') tStats.Completed++; else if (new Date(t.tasks?.deadline) < now) tStats.Overdue++; else tStats.Pending++; });
             chartInstances.c4 = new Chart(document.getElementById('c4_taskstatus'), { type: 'doughnut', data: { labels: Object.keys(tStats), datasets: [{ data: Object.values(tStats), backgroundColor: [Colors.emerald, Colors.slate, Colors.rose], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } } } });
@@ -888,6 +1194,11 @@
 
             const qaStats = { Active: 0, Archived: 0 }; DB.qs.forEach(q => q.archived ? qaStats.Archived++ : qaStats.Active++);
             chartInstances.c10 = new Chart(document.getElementById('c10_qa'), { type: 'doughnut', data: { labels: ['Active', 'Archived'], datasets: [{ data: [qaStats.Active, qaStats.Archived], backgroundColor: [Colors.emerald, Colors.slate], cutout: '60%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+
+            // c11: User Streak Leaderboard
+            // Same data as c7 but visualizing purely User vs Streak
+            const topUserStreaks = DB.streaks.sort((a, b) => b.current_streak - a.current_streak).slice(0, 10);
+            chartInstances.c11 = new Chart(document.getElementById('c11_streak_leaderboard'), { type: 'bar', data: { labels: topUserStreaks.length ? topUserStreaks.map(s => { const u = DB.users.find(x => x.id === s.protege_id); return u ? u.Name : 'User'; }) : ['No Data'], datasets: [{ label: 'Streak Days', data: topUserStreaks.map(s => s.current_streak), backgroundColor: Colors.amber, borderRadius: 4, barThickness: 15 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
         }
 
         async function handleCreateUser(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (d.Age) d.Age = +d.Age; const { data: authData, error: authError } = await client.auth.signUp({ email: d.email, password: 'TempPassword123!' }); if (authError) { console.error("Auth Error:", authError); return alert("Failed to create Auth User: " + authError.message); } if (authData.user) { d.id = authData.user.id; await safeInsert('Users', d); } }
@@ -912,12 +1223,52 @@
         async function deleteUser(id) { if (!confirm("Are you sure you want to delete this user?")) return; const { error } = await client.from('Users').delete().eq('id', id); if (error) alert("Delete Failed: " + error.message); else await refreshData(); }
         async function handleCreateTask(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (DB.users[0]) d.created_by = DB.users[0].id; await safeInsert('tasks', d); }
         async function handleCreateHabit(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); await safeInsert('habits', d); }
-        async function handleLinkCP() { const chaperone_id = val('sel-chap'); const protege_id = val('sel-prot'); if (!chaperone_id || !protege_id) return alert("Please select both."); const { error } = await client.from('chaperone_protege').insert([{ chaperone_id, protege_id }]); if (error) alert("Assignment Failed: " + error.message); else await refreshData(); }
+        async function handleLinkCP() {
+            const chaperone_id = val('sel-chap');
+            const protege_id = val('sel-prot');
+            if (!chaperone_id || !protege_id) return alert("Please select both.");
+
+            // CHECK EXISTING
+            const existing = DB.cp.find(x => x.protege_id === protege_id);
+            if (existing) {
+                return alert("This Protégé is already assigned to " + (existing.chaperone?.Name || 'a chaperone') + ". Please unlink them first.");
+            }
+
+            const { error } = await client.from('chaperone_protege').insert([{ chaperone_id, protege_id }]);
+            if (error) alert("Assignment Failed: " + error.message); else await refreshData();
+        }
         async function handleAssignTask() { const task_id = val('sel-task'), protege_id = val('sel-user-task'); await safeInsert('task_assignments', { task_id, protege_id, assigned_by_role: 'admin' }); }
         async function handleAssignHabit() { const habit_id = val('sel-habit'), protege_id = val('sel-user-habit'); await safeInsert('habit_assignments', { habit_id, protege_id }); }
         async function toggleArchive(id, status) { await client.from('questions').update({ archived: status }).eq('id', id); refreshData(); }
         async function unlink(id) { if (!confirm('Unlink this pair?')) return; const { error } = await client.from('chaperone_protege').delete().eq('id', id); if (error) alert("Failed: " + error.message); else await refreshData(); }
         async function safeInsert(table, data) { const { error } = await client.from(table).insert([data]); if (error) alert("Action Failed: " + error.message); else await refreshData(); }
+
+        async function cleanupDuplicates() {
+            // Find proteges with > 1 chaperone
+            const map = {};
+            DB.cp.forEach(lnk => {
+                if (!map[lnk.protege_id]) map[lnk.protege_id] = [];
+                map[lnk.protege_id].push(lnk);
+            });
+
+            for (const pid in map) {
+                const links = map[pid];
+                if (links.length > 1) {
+                    // Sort by created_at desc (keep newest) or just keep first? 
+                    // Let's keep the most recent one (assuming higher ID is newer if no created_at, or just pick one)
+                    // We don't have created_at in the select, but ID increases.
+                    links.sort((a, b) => b.id - a.id);
+                    const toKeep = links[0];
+                    const toRemove = links.slice(1);
+
+                    console.log(`Cleaning duplicates for protege ${pid}: Keeping ${toKeep.id}, removing ${toRemove.length}`);
+
+                    for (const dupe of toRemove) {
+                        await client.from('chaperone_protege').delete().eq('id', dupe.id);
+                    }
+                }
+            }
+        }
 
         function generateReport() {
             const minCons = +val('rep-cons'); const qualify = [];
