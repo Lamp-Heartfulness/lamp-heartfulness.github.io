@@ -492,6 +492,18 @@
         }
 
         /* TOP HEADER */
+        /* Main Content Area */
+        main {
+            flex: 1;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 0;
+            /* Critical for flex child text-overflow */
+        }
+
         .top-header {
             display: flex;
             justify-content: space-between;
@@ -546,19 +558,38 @@
             <div id="view-signin">
 
 
-                <!-- MAGIC LINK (DEFAULT) -->
-                <form id="form-magic" onsubmit="handleMagicLink(event)">
+                <!-- OTP / OLD MAGIC LINK FORM -->
+                <form id="form-magic" onsubmit="handleSendOtp(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email address</label>
-                        <input name="email" type="email" class="form-control" required placeholder="you@example.com">
+                        <input id="otp-email" name="email" type="email" class="form-control" required
+                            placeholder="you@example.com">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send Magic
-                        Link</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send
+                        OTP</button>
                     <p style="margin-top:1.5rem; font-size:0.9rem">
                         <a href="#" onclick="switchAuth('password')"
                             style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
                     </p>
                 </form>
+
+                <!-- VERIFY OTP VIEW (Hidden) -->
+                <div id="view-otp" class="hidden">
+                    <h3>Enter OTP</h3>
+                    <p>Check your email for the code</p>
+                    <form onsubmit="handleVerifyOtp(event)">
+                        <div class="input-group" style="text-align:left">
+                            <label>6-digit Code</label>
+                            <input type="text" id="otp-code" class="form-control" required placeholder="123456"
+                                maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center">
+                        </div>
+                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set
+                            Password</button>
+                        <p style="margin-top:1rem; font-size:0.9rem">
+                            <a href="#" onclick="location.reload()" style="color:#64748b">Back</a>
+                        </p>
+                    </form>
+                </div>
 
                 <!-- EMAIL/PASS LOGIN (HIDDEN) -->
                 <form id="form-password" class="hidden" onsubmit="handleLogin(event)">
@@ -1077,19 +1108,23 @@
 
         // INIT
         window.addEventListener('load', async () => {
-            // Check Auth Session
+            // Priority: Check for Recovery OR Magic Link Hash FIRST
+            const hash = window.location.hash;
+            // Treat 'recovery', 'magiclink', and 'signup' as triggers for Set Password view
+            const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
+
+            // Initialize Session
             const { data: { session } } = await client.auth.getSession();
 
-            // Check for Recovery Hash (#access_token=...&type=recovery)
-            const hash = window.location.hash;
-            if (hash && hash.includes('type=recovery')) {
-                // Supabase.js handles the session setting automatically from hash
-                // We just show Set Password view
+            if (isRecovery) {
+                // User clicked Magic Link (Recovery Mode)
+                console.log("Recovery Mode Detected");
                 showSetPassword();
             } else if (session) {
+                // Normal Session -> Dashboard
                 showDashboard(session.user);
             } else {
-                // Show Auth (already visible default)
+                // No Session -> Login Screen
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         });
@@ -1142,22 +1177,65 @@
             }
         }
 
-        async function handleMagicLink(e) {
+        // 1. Send OTP
+        async function handleSendOtp(e) {
             e.preventDefault();
-            const email = new FormData(e.target).get('email');
+            const email = document.getElementById('otp-email').value;
+            const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
-            msg.innerText = 'Sending...';
 
-            // Redirect to THIS page
-            const { error } = await client.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href
+            btn.disabled = true; btn.innerText = "Sending...";
+            msg.innerText = "";
+
+            // Allow Supabase to handle the email sending. 
+            // Note: In production, you'd use a real SMTP or Supabase's built-in mailer.
+            // For 'magiclink' type, OTP is sent to email.
+            const { data, error } = await client.auth.signInWithOtp({
+                email: email,
+                options: { shouldCreateUser: false } // Only existing admins
             });
+
+            btn.disabled = false; btn.innerText = "Send OTP";
 
             if (error) {
                 msg.innerText = error.message;
             } else {
-                msg.style.color = 'green';
-                msg.innerText = 'Check your email for the login link!';
+                // Switch to Verify View
+                document.getElementById('form-magic').classList.add('hidden');
+                document.getElementById('view-otp').classList.remove('hidden');
+                localStorage.setItem('pending_email', email); // Store for verification
+                // alert('OTP sent to ' + email);
+            }
+        }
+
+        // 2. Verify OTP
+        async function handleVerifyOtp(e) {
+            e.preventDefault();
+            const email = localStorage.getItem('pending_email');
+            const token = document.getElementById('otp-code').value;
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('auth-msg');
+
+            if (!email) { msg.innerText = "Session expired. Please restart."; return; }
+
+            btn.disabled = true; btn.innerText = "Verifying...";
+            msg.innerText = "";
+
+            const { data: { session }, error } = await client.auth.verifyOtp({
+                email,
+                token,
+                type: 'magiclink' // or 'recovery' / 'signup' depending on flow. 'magiclink' verifies OTPLink
+            });
+
+            btn.disabled = false; btn.innerText = "Verify & Set Password";
+
+            if (error) {
+                msg.innerText = "Invalid Code: " + error.message;
+            } else if (session) {
+                // Success! Redirect to Set Password
+                document.getElementById('view-signin').classList.add('hidden'); // Hide entire signin container content
+                document.getElementById('app-auth').querySelector('#view-otp').classList.add('hidden'); // Ensure OTP hidden
+                showSetPassword();
             }
         }
 
