@@ -669,37 +669,27 @@
         // INIT
         window.addEventListener('load', async () => {
             const hash = window.location.hash;
-            const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
+            const isRecovery = hash && hash.includes('type=recovery');
+
+            // CRITICAL SECURITY: Immediately clean URL hash if it contains sensitive tokens
+            if (hash && (hash.includes('access_token') || hash.includes('type=magiclink'))) {
+                history.replaceState(null, null, window.location.pathname);
+            }
 
             const { data: { session } } = await client.auth.getSession();
 
             if (session) {
-                // If it's a recovery flow (Reset Password), we MUST force the set-password screen
-                if (hash && hash.includes('type=recovery')) {
-                     showSetPassword();
-                } else {
-                    if (window.location.hash) history.replaceState(null, null, window.location.pathname);
-
-                    const amr = session.user?.amr || [];
-                    const isPasswordLogin = amr.some(r => r.method === 'password');
-                    const meta = session.user?.user_metadata || {};
-                    const hasSetup = meta.setup_complete === true;
-
-                    if (isPasswordLogin) {
-                        showDashboard(session.user);
-                    } else {
-                        // Logic check:
-                        // If user has set up a password but is using magic link
-                        if (hasSetup) {
-                            // User allowed to login via Magic Link even if they have a password
-                            showDashboard(session.user);
-                        } else {
-                            showSetPassword();
-                        }
-                    }
+                // If it is a PASSWORD RESET (Recovery) link, force the Set Password screen
+                if (isRecovery) {
+                    showSetPassword();
+                } 
+                // Otherwise, normal login (Magic Link or Password) -> Go to Dashboard
+                else {
+                    showDashboard(session.user);
                 }
             } else {
                 document.getElementById('loading-overlay').style.display = 'none';
+                // Handle expired recovery links
                 if (isRecovery) document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
             }
         });
@@ -719,14 +709,16 @@
 
         function showSetPassword() {
             document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('app-auth').classList.remove('hidden'); // Ensure auth container is visible
             document.getElementById('view-signin').classList.add('hidden');
             document.getElementById('view-setpass').classList.remove('hidden');
         }
 
         async function handleLogout() {
             await client.auth.signOut();
-            window.location.hash = '';
-            window.location.reload();
+            // SECURITY: Force navigation to clean base URL.
+            // This prevents re-login loops if 'reload()' sees an old hash token.
+            window.location.href = window.location.pathname; 
         }
 
         async function handleLogin(e) {
