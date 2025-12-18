@@ -1102,49 +1102,42 @@
         let REPORT_DATA = [];
 
         // INIT
-        window.addEventListener('load', async () => {
-            // Priority: Check for Recovery OR Magic Link Hash FIRST
-            const hash = window.location.hash;
-            const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
+        // INIT
+        // Use onAuthStateChange for immediate reaction to session events (fixes URL scrubbing delay)
+        client.auth.onAuthStateChange(async (event, session) => {
+            // 1. Immediate URL Scrubbing if Session Exists
+            if (session && window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type='))) {
+                history.replaceState(null, null, window.location.pathname);
+            }
 
-            // 1. Initialize Session directly (let Supabase read the hash)
-            const { data: { session } } = await client.auth.getSession();
-
-            // 2. Logic based on Session State
+            // 2. Handle State
             if (session) {
-                // NOW we can clear the hash visually
-                if (window.location.hash) {
-                    // CRITICAL: Remove the hash (contains access_token) so it isn't copied by accident
-                    history.replaceState(null, null, window.location.pathname);
-                }
-
                 const amr = session.user?.amr || [];
                 const isOtp = amr.some(r => r.method === 'otp' || r.method === 'magiclink');
                 const meta = session.user?.user_metadata || {};
                 const hasSetup = meta.setup_complete === true;
 
-                // PERMISSIVE CHECK: 
-                // If it is NOT explicitly an OTP session, we assume it's a valid persistent session (likely Password).
-                // This fixes the issue where 'amr' might be empty on refresh.
                 if (!isOtp) {
+                    // Valid Password Session
                     showDashboard(session.user);
                 } else {
-                    // It IS an OTP/Magic Link session
-                    console.log("OTP Session. Setup Complete?", hasSetup);
-
+                    // Magic Link / OTP Session
                     if (hasSetup) {
-                        // User HAS a password but is using Magic Link -> BLOCK
+                        // Security: If setup complete, force password login
                         alert("For security, please sign in using your Password.");
                         await client.auth.signOut();
-                        document.getElementById('loading-overlay').style.display = 'none';
                         window.location.reload();
                     } else {
-                        // User needs to set password -> ALLOW
+                        // New User / Password Reset
                         showSetPassword();
                     }
                 }
             } else {
-                // No Session -> Login Screen
+                // No Session
+                // Check if we are just landing or if it's a recovery flow that failed
+                const hash = window.location.hash;
+                const isRecovery = hash && (hash.includes('type=recovery'));
+
                 document.getElementById('loading-overlay').style.display = 'none';
                 if (isRecovery) {
                     document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
