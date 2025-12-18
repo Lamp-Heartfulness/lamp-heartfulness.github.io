@@ -525,91 +525,11 @@
 
 
 
-    <!-- AUTH APP -->
-    <div id="app-auth">
-        <div class="auth-card">
-            <h1>Heartfulness Admin</h1>
-            <p>Sign in to continue</p>
+    <!-- AUTH REMOVED - Managed by admin_login.html -->
+    <div id="app-dashboard" style="display:none">
 
-            <div id="view-signin">
+        <!-- DASHBOARD APP -->
 
-
-                <!-- OTP / OLD MAGIC LINK FORM -->
-                <form id="form-magic" onsubmit="handleSendOtp(event)">
-                    <div class="input-group" style="text-align:left">
-                        <label>Email address</label>
-                        <input id="otp-email" name="email" type="email" class="form-control" required
-                            placeholder="you@example.com">
-                    </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send
-                        OTP</button>
-                    <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('password')"
-                            style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
-                    </p>
-                </form>
-
-                <!-- VERIFY OTP VIEW (Hidden) -->
-                <div id="view-otp" class="hidden">
-                    <h3>Check your Email</h3>
-                    <p style="font-size:0.9rem; color:#666">
-                        We sent a code to your email.<br>
-                        <strong>Enter it below OR click the link in the email.</strong>
-                    </p>
-                    <form onsubmit="handleVerifyOtp(event)">
-                        <div class="input-group" style="text-align:left">
-                            <label>6-digit Code (if available)</label>
-                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6"
-                                style="letter-spacing:4px; font-size:1.2rem; text-align:center">
-                        </div>
-                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set
-                            Password</button>
-                        <p style="margin-top:1rem; font-size:0.9rem">
-                            <a href="#" onclick="location.reload()" style="color:#64748b">Back</a>
-                        </p>
-                    </form>
-                </div>
-
-                <!-- EMAIL/PASS LOGIN (HIDDEN) -->
-                <form id="form-password" class="hidden" onsubmit="handleLogin(event)">
-                    <div class="input-group" style="text-align:left">
-                        <label>Email</label>
-                        <input name="email" type="email" class="form-control" required
-                            placeholder="admin@heartfulness.org">
-                    </div>
-                    <div class="input-group" style="text-align:left">
-                        <label>Password</label>
-                        <input name="password" type="password" class="form-control" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Sign
-                        In</button>
-                    <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('magic')"
-                            style="color:#0F766E; text-decoration:none; font-weight:500">Send Magic Link</a>
-                    </p>
-                </form>
-            </div>
-
-            <!-- SET PASSWORD VIEW (Hidden by default) -->
-            <div id="view-setpass" class="hidden">
-                <h3>Set New Password</h3>
-                <p>Secure your account</p>
-                <form onsubmit="handleSetPassword(event)">
-                    <div class="input-group" style="text-align:left">
-                        <label>New Password</label>
-                        <input type="password" id="new-password" class="form-control" required minlength="6">
-                    </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update
-                        Password</button>
-                </form>
-            </div>
-
-            <div id="auth-msg" style="margin-top:1rem; font-size:0.9rem; color:#DC2626"></div>
-        </div>
-    </div>
-
-    <!-- DASHBOARD APP -->
-    <div id="app-dashboard" class="hidden">
         <!-- SIDEBAR -->
         <aside>
             <div class="brand">
@@ -1103,51 +1023,26 @@
 
         // INIT
         // INIT
-        // Use onAuthStateChange for immediate reaction to session events (fixes URL scrubbing delay)
+        // Check for Session. If none, redirect to Login.
         client.auth.onAuthStateChange(async (event, session) => {
-            // 1. Immediate URL Scrubbing if Session Exists
-            if (session && window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type='))) {
-                history.replaceState(null, null, window.location.pathname);
-            }
-
-            // 2. Handle State
             if (session) {
-                const amr = session.user?.amr || [];
-                const isOtp = amr.some(r => r.method === 'otp' || r.method === 'magiclink');
-                const meta = session.user?.user_metadata || {};
-                const hasSetup = meta.setup_complete === true;
+                // We have a session! Show Dashboard.
+                // Scrub URL just in case, though admin_login should have done it
+                if (window.location.hash) history.replaceState(null, null, window.location.pathname);
 
-                if (!isOtp) {
-                    // Valid Password Session
-                    showDashboard(session.user);
-                } else {
-                    // Magic Link / OTP Session
-                    if (hasSetup) {
-                        // Security: If setup complete, force password login
-                        alert("For security, please sign in using your Password.");
-                        await client.auth.signOut();
-                        window.location.reload();
-                    } else {
-                        // New User / Password Reset
-                        showSetPassword();
-                    }
-                }
+                showDashboard(session.user);
             } else {
-                // No Session
-                // Check if we are just landing or if it's a recovery flow that failed
-                const hash = window.location.hash;
-                const isRecovery = hash && (hash.includes('type=recovery'));
-
-                document.getElementById('loading-overlay').style.display = 'none';
-                if (isRecovery) {
-                    document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
-                }
+                // No Session -> KICK OUT to Login Page
+                window.location.href = 'admin_login.html';
             }
         });
 
         function showDashboard(user) {
-            document.getElementById('app-auth').classList.add('hidden');
-            document.getElementById('app-dashboard').classList.remove('hidden');
+            // Make visible immediately
+            const app = document.getElementById('app-dashboard');
+            app.style.display = 'flex'; // Was flex logic in CSS #app-dashboard
+            app.classList.remove('hidden');
+
             document.getElementById('loading-overlay').style.display = 'flex'; // Show loading while fetching data
 
             // Update Profile Name if avail
@@ -1162,12 +1057,6 @@
             });
         }
 
-        function showSetPassword() {
-            document.getElementById('loading-overlay').style.display = 'none';
-            document.getElementById('view-signin').classList.add('hidden');
-            document.getElementById('view-setpass').classList.remove('hidden');
-        }
-
         // AUTH HANDLERS
         async function handleLogout() {
             try {
@@ -1179,148 +1068,8 @@
             localStorage.clear();
             sessionStorage.clear();
 
-            // Reload into clean state
-            window.location.hash = '';
-            window.location.reload();
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const d = Object.fromEntries(new FormData(e.target));
-            const msg = document.getElementById('auth-msg');
-            msg.innerText = '';
-
-            const { data, error } = await client.auth.signInWithPassword({
-                email: d.email,
-                password: d.password
-            });
-
-            if (error) {
-                msg.innerText = error.message;
-            } else {
-                showDashboard(data.user);
-            }
-        }
-
-        // 1. Send OTP
-        async function handleSendOtp(e) {
-            e.preventDefault();
-            const email = document.getElementById('otp-email').value;
-            const btn = e.target.querySelector('button');
-            const msg = document.getElementById('auth-msg');
-
-            btn.disabled = true; btn.innerText = "Sending...";
-            msg.innerText = "";
-
-            // Allow Supabase to handle the email sending. 
-            // Note: In production, you'd use a real SMTP or Supabase's built-in mailer.
-            // For 'magiclink' type, OTP is sent to email.
-
-            // Redirect to index.html specifically (per user request)
-            const redirectUrl = window.location.origin + '/index.html';
-
-            const { data, error } = await client.auth.signInWithOtp({
-                email: email,
-                options: {
-                    shouldCreateUser: false,
-                    emailRedirectTo: redirectUrl
-                }
-            });
-
-            btn.disabled = false; btn.innerText = "Send OTP";
-
-            if (error) {
-                msg.style.color = 'red';
-                msg.innerText = error.message;
-            } else {
-                // SUCCESS: Show green message, STAY on form
-                msg.style.color = 'green';
-                msg.innerHTML = `
-                    <div style="font-weight:600"><i class="fa-solid fa-check-circle"></i> Link sent! Check your inbox.</div>
-                    <div style="font-size:0.85rem; margin-top:0.5rem; color:#1e293b">
-                        If you have a 6-digit code, <a href="#" onclick="document.getElementById('view-otp').classList.remove('hidden'); document.getElementById('form-magic').classList.add('hidden')" style="color:#0F766E; font-weight:600">enter it here</a>.
-                    </div>
-                `;
-
-                // Store email for verification step
-                localStorage.setItem('pending_email', email);
-            }
-        }
-
-        // 2. Verify OTP
-        async function handleVerifyOtp(e) {
-            e.preventDefault();
-            const email = localStorage.getItem('pending_email');
-            const token = document.getElementById('otp-code').value;
-            const btn = e.target.querySelector('button');
-            const msg = document.getElementById('auth-msg');
-
-            if (!email) { msg.innerText = "Session expired. Please restart."; return; }
-
-            btn.disabled = true; btn.innerText = "Verifying...";
-            msg.innerText = "";
-
-            const { data: { session }, error } = await client.auth.verifyOtp({
-                email,
-                token,
-                type: 'magiclink' // or 'recovery' / 'signup' depending on flow. 'magiclink' verifies OTPLink
-            });
-
-            btn.disabled = false; btn.innerText = "Verify & Set Password";
-
-            if (error) {
-                msg.innerText = "Invalid Code: " + error.message;
-            } else if (session) {
-                // Success! Redirect to Set Password
-                document.getElementById('view-signin').classList.add('hidden'); // Hide entire signin container content
-                document.getElementById('app-auth').querySelector('#view-otp').classList.add('hidden'); // Ensure OTP hidden
-                showSetPassword();
-            }
-        }
-
-        async function handleSetPassword(e) {
-            e.preventDefault();
-            const password = document.getElementById('new-password').value;
-            const msg = document.getElementById('auth-msg');
-
-            const { error } = await client.auth.updateUser({
-                password: password,
-                data: { setup_complete: true } // Mark user as fully set up
-            });
-
-            if (error) {
-                msg.style.color = 'red';
-                msg.innerText = error.message;
-            } else {
-                // Success - Sign out so they can log in FRESH with password
-                await client.auth.signOut().catch(err => console.error("SignOut Failed", err));
-
-                // FORCE CLEAR LocalStorage to ensure no sticky session
-                localStorage.clear();
-                sessionStorage.clear();
-
-                alert('Password updated successfully! Please sign in with your new password.');
-                window.location.hash = '';
-
-                // Clear any stored emails (already cleared by clear(), but being explicit)
-                localStorage.removeItem('pending_email');
-
-                // Switch to Sign In View
-                document.getElementById('view-setpass').classList.add('hidden');
-                document.getElementById('view-signin').classList.remove('hidden');
-                switchAuth('password');
-            }
-        }
-
-        function switchAuth(mode) {
-            document.getElementById('auth-msg').innerText = ''; // Clear errors
-            if (mode === 'password') {
-                document.getElementById('form-password').classList.remove('hidden');
-                document.getElementById('form-magic').classList.add('hidden');
-            } else {
-                document.getElementById('form-password').classList.add('hidden');
-                document.getElementById('form-magic').classList.remove('hidden');
-            }
+            // Redirect to Login Page
+            window.location.href = 'admin_login.html';
         }
 
 
