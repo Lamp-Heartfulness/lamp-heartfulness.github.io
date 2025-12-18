@@ -480,18 +480,6 @@
         }
 
         /* TOP HEADER */
-        /* Main Content Area */
-        main {
-            flex: 1;
-            height: 100%;
-            overflow-y: auto;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: 0;
-            /* Critical for flex child text-overflow */
-        }
-
         .top-header {
             display: flex;
             justify-content: space-between;
@@ -1118,8 +1106,18 @@
                 console.log("Recovery Mode Detected");
                 showSetPassword();
             } else if (session) {
-                // Normal Session -> Dashboard
-                showDashboard(session.user);
+                // SECURITY CHECK: 
+                // If user logged in via Magic Link/OTP, FORCE them to Set Password.
+                // Dashboard access is ONLY allowed via 'password' login.
+                const amr = session.user?.amr || [];
+                const isPasswordLogin = amr.some(r => r.method === 'password');
+
+                if (isPasswordLogin) {
+                    showDashboard(session.user);
+                } else {
+                    console.log("OTP Session detected - Enforcing Password Set");
+                    showSetPassword();
+                }
             } else {
                 // No Session -> Login Screen
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -1254,8 +1252,15 @@
                 msg.style.color = 'red';
                 msg.innerText = error.message;
             } else {
+                // Success - Sign out so they can log in FRESH with password
+                await client.auth.signOut();
+
                 alert('Password updated successfully! Please sign in with your new password.');
-                window.location.hash = ''; // Clear token
+                window.location.hash = '';
+
+                // Clear any stored emails
+                localStorage.removeItem('pending_email');
+
                 // Switch to Sign In View
                 document.getElementById('view-setpass').classList.add('hidden');
                 document.getElementById('view-signin').classList.remove('hidden');
