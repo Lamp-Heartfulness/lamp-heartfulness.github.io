@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sign In | Heartfulness</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #F3F4F6;
+            --primary: #0F766E;
+            --primary-hover: #115E59;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-page);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: var(--text-main);
+        }
+
+        .auth-card {
+            background: white;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: 2px solid #ccfbf1;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #auth-msg {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-card">
+        <h1>Heartfulness Admin</h1>
+        <p>Sign in to continue</p>
+
+        <div id="view-signin">
+            <!-- OTP / MAGIC LINK FORM -->
+            <form id="form-magic" onsubmit="handleSendOtp(event)">
+                <div class="input-group">
+                    <label>Email address</label>
+                    <input id="otp-email" name="email" type="email" class="form-control" required
+                        placeholder="you@example.com">
+                </div>
+                <button type="submit">Send OTP</button>
+                <p style="margin-top:1.5rem; font-size:0.9rem; margin-bottom:0">
+                    <a href="#" onclick="switchAuth('password')">Log In with Password</a>
+                </p>
+            </form>
+
+            <!-- VERIFY OTP VIEW (Hidden) -->
+            <div id="view-otp" class="hidden">
+                <h3 style="margin-bottom:1rem; color:#374151">Check your Email</h3>
+                <p style="font-size:0.9rem; color:#666; margin-bottom:1.5rem">
+                    We sent a code to your email.<br>
+                    <strong>Enter it below OR click the link in the email.</strong>
+                </p>
+                <form onsubmit="handleVerifyOtp(event)">
+                    <div class="input-group">
+                        <label>6-digit Code</label>
+                        <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6"
+                            style="letter-spacing:4px; font-size:1.2rem; text-align:center">
+                    </div>
+                    <button type="submit">Verify & Set Password</button>
+                    <p style="margin-top:1rem; font-size:0.9rem; margin-bottom:0">
+                        <a href="#" onclick="location.reload()" style="color:#64748b">Back</a>
+                    </p>
+                </form>
+            </div>
+
+            <!-- EMAIL/PASS LOGIN (HIDDEN) -->
+            <form id="form-password" class="hidden" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input name="email" type="email" class="form-control" required placeholder="admin@heartfulness.org">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input name="password" type="password" class="form-control" required placeholder="••••••••">
+                </div>
+                <button type="submit">Sign In</button>
+                <p style="margin-top:1.5rem; font-size:0.9rem; margin-bottom:0">
+                    <a href="#" onclick="switchAuth('magic')">Send Magic Link</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- SET PASSWORD VIEW (Hidden by default) -->
+        <div id="view-setpass" class="hidden">
+            <h3 style="margin-bottom:0.5rem">Set New Password</h3>
+            <p>Secure your account</p>
+            <form onsubmit="handleSetPassword(event)">
+                <div class="input-group">
+                    <label>New Password</label>
+                    <input type="password" id="new-password" class="form-control" required minlength="6">
+                </div>
+                <button type="submit">Update Password</button>
+            </form>
+        </div>
+
+        <div id="auth-msg"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://gmrqcoisfoghljwqiuys.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV';
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- INIT ---
+        // Listen for Auth Changes
+        // If we get a valid session (e.g. from magic link redirect or existing cookie),
+        // we redirect to the dashboard.
+        client.auth.onAuthStateChange(async (event, session) => {
+            if (session) {
+                // If the URL has a hash, scrub it locally just in case, though the redirect will clean it too.
+                if (window.location.hash) {
+                    history.replaceState(null, null, window.location.pathname);
+                }
+
+                // Check Flow Type
+                const amr = session.user?.amr || [];
+                const isOtp = amr.some(r => r.method === 'otp' || r.method === 'magiclink');
+                const meta = session.user?.user_metadata || {};
+                const hasSetup = meta.setup_complete === true;
+
+                if (!isOtp) {
+                    // Standard Password Login -> Go to Dashboard
+                    window.location.href = 'dashboard_v3.html';
+                } else {
+                    // OTP/Magic Link Login
+                    if (hasSetup) {
+                        // Security Exception: If already set up, force password login
+                        alert("For security, please sign in using your Password.");
+                        await client.auth.signOut();
+                        window.location.reload();
+                    } else {
+                        // First time setup or recovery -> Allow to set password
+                        showSetPassword();
+                    }
+                }
+            }
+        });
+
+        // --- UI UTILS ---
+        function switchAuth(mode) {
+            document.getElementById('auth-msg').innerText = '';
+            if (mode === 'password') {
+                document.getElementById('form-password').classList.remove('hidden');
+                document.getElementById('form-magic').classList.add('hidden');
+            } else {
+                document.getElementById('form-password').classList.add('hidden');
+                document.getElementById('form-magic').classList.remove('hidden');
+            }
+        }
+
+        function showSetPassword() {
+            document.getElementById('view-signin').classList.add('hidden');
+            document.getElementById('view-setpass').classList.remove('hidden');
+        }
+
+        // --- HANDLERS ---
+
+        // 1. Password Login
+        async function handleLogin(e) {
+            e.preventDefault();
+            const d = Object.fromEntries(new FormData(e.target));
+            const msg = document.getElementById('auth-msg');
+            msg.innerText = '';
+
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Signing In...";
+
+            const { data, error } = await client.auth.signInWithPassword({
+                email: d.email,
+                password: d.password
+            });
+
+            if (error) {
+                msg.style.color = '#ef4444';
+                msg.innerText = error.message;
+                btn.disabled = false; btn.innerText = "Sign In";
+            }
+            // If success, onAuthStateChange handles redirect
+        }
+
+        // 2. Send Magic Link
+        async function handleSendOtp(e) {
+            e.preventDefault();
+            const email = document.getElementById('otp-email').value;
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('auth-msg');
+
+            btn.disabled = true; btn.innerText = "Sending...";
+            msg.innerText = "";
+
+            // Redirect back to THIS page to handle the hash
+            // If running on GitHub Pages: https://lamp-heartfulness.github.io/admin_login.html
+            // If local: relative path
+
+            // We use absolute URL for safety if known, or origin + pathname
+            const redirectUrl = window.location.origin + window.location.pathname;
+
+            const { data, error } = await client.auth.signInWithOtp({
+                email: email,
+                options: {
+                    shouldCreateUser: false,
+                    emailRedirectTo: redirectUrl
+                }
+            });
+
+            btn.disabled = false; btn.innerText = "Send OTP";
+
+            if (error) {
+                msg.style.color = '#ef4444';
+                msg.innerText = error.message;
+            } else {
+                msg.style.color = '#10B981';
+                msg.innerHTML = `
+                    <div><i class="fa-solid fa-check-circle"></i> Link sent! Check your inbox.</div>
+                    <div style="font-size:0.85rem; margin-top:0.5rem; color:#1e293b">
+                        Have a code? <a href="#" onclick="document.getElementById('view-otp').classList.remove('hidden'); document.getElementById('form-magic').classList.add('hidden')">Enter it here</a>.
+                    </div>
+                `;
+                localStorage.setItem('pending_email', email);
+            }
+        }
+
+        // 3. Verify OTP Manually
+        async function handleVerifyOtp(e) {
+            e.preventDefault();
+            const email = localStorage.getItem('pending_email');
+            const token = document.getElementById('otp-code').value;
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('auth-msg');
+
+            if (!email) { msg.innerText = "Session expired. Please restart."; return; }
+
+            btn.disabled = true; btn.innerText = "Verifying...";
+            msg.innerText = "";
+
+            const { data: { session }, error } = await client.auth.verifyOtp({
+                email,
+                token,
+                type: 'magiclink'
+            });
+
+            if (error) {
+                msg.style.color = '#ef4444';
+                msg.innerText = error.message;
+                btn.disabled = false; btn.innerText = "Verify & Set Password";
+            }
+            // If success, onAuthStateChange handles it
+        }
+
+        // 4. Set Password
+        async function handleSetPassword(e) {
+            e.preventDefault();
+            const password = document.getElementById('new-password').value;
+            const msg = document.getElementById('auth-msg');
+            const btn = e.target.querySelector('button');
+
+            btn.disabled = true; btn.innerText = "Updating...";
+
+            const { error } = await client.auth.updateUser({
+                password: password,
+                data: { setup_complete: true }
+            });
+
+            if (error) {
+                msg.style.color = '#ef4444';
+                msg.innerText = error.message;
+                btn.disabled = false; btn.innerText = "Update Password";
+            } else {
+                // Success: Sign out so they can log in cleanly
+                await client.auth.signOut();
+                alert('Password updated! Please sign in with your new password.');
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+
+</html>
