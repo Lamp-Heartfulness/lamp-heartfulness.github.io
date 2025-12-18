@@ -674,22 +674,28 @@
             const { data: { session } } = await client.auth.getSession();
 
             if (session) {
-                if (window.location.hash) history.replaceState(null, null, window.location.pathname);
-
-                const amr = session.user?.amr || [];
-                const isPasswordLogin = amr.some(r => r.method === 'password');
-                const meta = session.user?.user_metadata || {};
-                const hasSetup = meta.setup_complete === true;
-
-                if (isPasswordLogin) {
-                    showDashboard(session.user);
+                // If it's a recovery flow (Reset Password), we MUST force the set-password screen
+                if (hash && hash.includes('type=recovery')) {
+                     showSetPassword();
                 } else {
-                    // Logic check:
-                    // If user has set up a password but is using magic link, we now ALLOW them in (removed block)
-                    if (hasSetup) {
+                    if (window.location.hash) history.replaceState(null, null, window.location.pathname);
+
+                    const amr = session.user?.amr || [];
+                    const isPasswordLogin = amr.some(r => r.method === 'password');
+                    const meta = session.user?.user_metadata || {};
+                    const hasSetup = meta.setup_complete === true;
+
+                    if (isPasswordLogin) {
                         showDashboard(session.user);
                     } else {
-                        showSetPassword();
+                        // Logic check:
+                        // If user has set up a password but is using magic link
+                        if (hasSetup) {
+                            // User allowed to login via Magic Link even if they have a password
+                            showDashboard(session.user);
+                        } else {
+                            showSetPassword();
+                        }
                     }
                 }
             } else {
@@ -742,7 +748,7 @@
                 email: email, 
                 options: { 
                     shouldCreateUser: false, 
-                    emailRedirectTo: 'https://lamp-heartfulness.github.io' // REDIRECT KEPT AS REQUESTED
+                    emailRedirectTo: 'https://lamp-heartfulness.github.io' 
                 } 
             });
             btn.disabled = false; btn.innerText = "Send OTP";
