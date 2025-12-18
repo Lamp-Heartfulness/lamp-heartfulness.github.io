@@ -840,238 +840,248 @@
                     </table>
                 </div>
             </div>
-    </div>
-    </div>
 
-    <!-- 3. ASSIGNMENTS -->
-    <div id="view-assignments" class="view hidden">
-        <div class="card">
-            <h3>Assign Chaperone</h3>
-            <div class="form-grid" style="align-items:end">
-                <div class="input-group"><label>Chaperone</label><select id="sel-chap" class="form-control"></select>
-                </div>
-                <div class="input-group"><label>Protégé</label><select id="sel-prot" class="form-control"></select>
-                </div>
-                <div class="input-group"><button class="btn-primary" style="width:100%" onclick="handleLinkCP()">Link
-                        Profiles</button></div>
-            </div>
-        </div>
-        <div class="card">
-            <h3>Mentorship Links</h3>
-            <table id="table-cp">
-                <thead>
-                    <tr>
-                        <th>Chaperone</th>
-                        <th>Protégé</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- 4. CURRICULUM -->
-    <div id="view-curriculum" class="view hidden">
-        <div style="margin-bottom:1.5rem; display:flex; gap:1rem">
-            <button class="btn-primary" onclick="toggleCurr('task')" id="btn-task">Tasks</button>
-            <button class="btn-secondary" onclick="toggleCurr('habit')" id="btn-habit">Habits</button>
-        </div>
-
-        <!-- Tasks -->
-        <div id="section-task">
-            <div class="card" style="border-left:4px solid var(--primary)">
-                <h3>Create Task</h3>
-                <form onsubmit="handleCreateTask(event)">
-                    <div class="form-grid">
-                        <div class="input-group"><label>Task Name</label><input name="name" class="form-control"
-                                required>
+            <!-- 3. ASSIGNMENTS -->
+            <div id="view-assignments" class="view hidden">
+                <div class="card">
+                    <h3>Assign Chaperone</h3>
+                    <div class="form-grid" style="align-items:end">
+                        <div class="input-group"><label>Chaperone</label><select id="sel-chap"
+                                class="form-control"></select>
                         </div>
-                        <div class="input-group"><label>Type</label><select name="type" class="form-control">
-                                <option value="knowledge">Knowledge</option>
-                                <option value="experimental">Experimental</option>
+                        <div class="input-group"><label>Protégé</label><select id="sel-prot"
+                                class="form-control"></select>
+                        </div>
+                        <div class="input-group"><button class="btn-primary" style="width:100%"
+                                onclick="handleLinkCP()">Link
+                                Profiles</button></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Mentorship Links</h3>
+                    <table id="table-cp">
+                        <thead>
+                            <tr>
+                                <th>Chaperone</th>
+                                <th>Protégé</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. CURRICULUM -->
+            <div id="view-curriculum" class="view hidden">
+                <div style="margin-bottom:1.5rem; display:flex; gap:1rem">
+                    <button class="btn-primary" onclick="toggleCurr('task')" id="btn-task">Tasks</button>
+                    <button class="btn-secondary" onclick="toggleCurr('habit')" id="btn-habit">Habits</button>
+                </div>
+
+                <!-- Tasks -->
+                <div id="section-task">
+                    <div class="card" style="border-left:4px solid var(--primary)">
+                        <h3>Create Task</h3>
+                        <form onsubmit="handleCreateTask(event)">
+                            <div class="form-grid">
+                                <div class="input-group"><label>Task Name</label><input name="name" class="form-control"
+                                        required>
+                                </div>
+                                <div class="input-group"><label>Type</label><select name="type" class="form-control">
+                                        <option value="knowledge">Knowledge</option>
+                                        <option value="experimental">Experimental</option>
+                                    </select></div>
+                                <div class="input-group"><label>Deadline</label><input name="deadline" type="date"
+                                        class="form-control"></div>
+                                <!-- MEDIA FIELDS -->
+                                <div class="input-group"><label>Video URL</label><input name="video_url"
+                                        class="form-control" placeholder="https://youtube..."></div>
+                                <div class="input-group"><label>Document URL</label><input name="document_url"
+                                        class="form-control" placeholder="https://drive..."></div>
+                                <div class="input-group"><label>Photos (Comma separated URLs)</label><input
+                                        name="photos_str" class="form-control"></div>
+                                <!-- END MEDIA -->
+                                <div class="input-group"><label>Description</label><input name="description"
+                                        class="form-control">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Create Task</button>
+                        </form>
+                        <hr style="margin:1.5rem 0; border-color:var(--border)">
+                        <h3>Assign Task</h3>
+                        <div class="form-grid" style="align-items:end">
+                            <div class="input-group"><label>Task</label><select id="sel-task"
+                                    class="form-control"></select>
+                            </div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-task"
+                                    class="form-control"></select>
+                            </div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%"
+                                    onclick="handleAssignTask()">Assign</button></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <table id="table-tasks-active">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>User</th>
+                                    <th>Assigned By</th>
+                                    <th>Deadline</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Habits -->
+                <div id="section-habit" class="hidden">
+                    <div class="card" style="border-left:4px solid var(--success)">
+                        <h3>Create Habit</h3>
+                        <form onsubmit="handleCreateHabit(event)">
+                            <div class="form-grid">
+                                <div class="input-group"><label>Habit Name</label><input name="name"
+                                        class="form-control" required>
+                                </div>
+                                <div class="input-group"><label>Description</label><input name="description"
+                                        class="form-control">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary" style="background:var(--success)">Create
+                                Habit</button>
+                        </form>
+                        <hr style="margin:1.5rem 0; border-color:var(--border)">
+                        <h3>Assign Habit</h3>
+                        <div class="form-grid" style="align-items:end">
+                            <div class="input-group"><label>Habit</label><select id="sel-habit"
+                                    class="form-control"></select>
+                            </div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-habit"
+                                    class="form-control"></select></div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%"
+                                    onclick="handleAssignHabit()">Assign</button></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <table id="table-habits-active">
+                            <thead>
+                                <tr>
+                                    <th>Habit</th>
+                                    <th>User</th>
+                                    <th>Assigned At</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Q&A -->
+            <div id="view-qa" class="view hidden">
+                <div class="card">
+                    <h3>Moderation Queue</h3>
+                    <table id="table-qa">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>User</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 6. REPORTS -->
+            <div id="view-reports" class="view hidden">
+                <div class="card">
+                    <h3><i class="fa-solid fa-graduation-cap"></i> Qualified Protégés Report</h3>
+                    <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks
+                        before
+                        deadline and meet consistency criteria.</p>
+
+                    <div class="form-grid" style="align-items:end; margin-bottom:1.5rem">
+                        <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons"
+                                type="number" value="80" class="form-control"></div>
+                        <div class="input-group"><label>Task Deadline Check</label><select class="form-control"
+                                disabled>
+                                <option>Must be before deadline</option>
                             </select></div>
-                        <div class="input-group"><label>Deadline</label><input name="deadline" type="date"
-                                class="form-control"></div>
-                        <!-- MEDIA FIELDS -->
-                        <div class="input-group"><label>Video URL</label><input name="video_url" class="form-control"
-                                placeholder="https://youtube..."></div>
-                        <div class="input-group"><label>Document URL</label><input name="document_url"
-                                class="form-control" placeholder="https://drive..."></div>
-                        <div class="input-group"><label>Photos (Comma separated URLs)</label><input name="photos_str"
-                                class="form-control"></div>
-                        <!-- END MEDIA -->
-                        <div class="input-group"><label>Description</label><input name="description"
-                                class="form-control">
+                        <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run
+                                Analysis</button></div>
+                    </div>
+
+                    <div id="report-results" class="hidden">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
+                            <h4>Results</h4>
+                            <button class="btn-secondary" onclick="exportReport()"><i
+                                    class="fa-solid fa-file-export"></i>
+                                Download CSV</button>
                         </div>
+                        <table id="table-report">
+                            <thead>
+                                <tr>
+                                    <th>Protégé</th>
+                                    <th>Task Status</th>
+                                    <th>Habit Consistency</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <button type="submit" class="btn-primary">Create Task</button>
-                </form>
-                <hr style="margin:1.5rem 0; border-color:var(--border)">
-                <h3>Assign Task</h3>
-                <div class="form-grid" style="align-items:end">
-                    <div class="input-group"><label>Task</label><select id="sel-task" class="form-control"></select>
-                    </div>
-                    <div class="input-group"><label>Protégé</label><select id="sel-user-task"
-                            class="form-control"></select>
-                    </div>
-                    <div class="input-group"><button class="btn-secondary" style="width:100%"
-                            onclick="handleAssignTask()">Assign</button></div>
                 </div>
             </div>
-            <div class="card">
-                <table id="table-tasks-active">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                            <th>User</th>
-                            <th>Assigned By</th>
-                            <th>Deadline</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Habits -->
-        <div id="section-habit" class="hidden">
-            <div class="card" style="border-left:4px solid var(--success)">
-                <h3>Create Habit</h3>
-                <form onsubmit="handleCreateHabit(event)">
-                    <div class="form-grid">
-                        <div class="input-group"><label>Habit Name</label><input name="name" class="form-control"
-                                required>
-                        </div>
-                        <div class="input-group"><label>Description</label><input name="description"
-                                class="form-control">
-                        </div>
+            <!-- 7. DATA EXPORTS (NEW) -->
+            <div id="view-exports" class="view hidden">
+                <h2>Data Export Center</h2>
+                <div class="form-grid">
+                    <div class="card">
+                        <h3><i class="fa-solid fa-users"></i> Users Data</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.
+                        </p>
+                        <button class="btn-secondary" onclick="exportData('users')">Download CSV</button>
                     </div>
-                    <button type="submit" class="btn-primary" style="background:var(--success)">Create
-                        Habit</button>
-                </form>
-                <hr style="margin:1.5rem 0; border-color:var(--border)">
-                <h3>Assign Habit</h3>
-                <div class="form-grid" style="align-items:end">
-                    <div class="input-group"><label>Habit</label><select id="sel-habit" class="form-control"></select>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all task definitions.</p>
+                        <button class="btn-secondary" onclick="exportData('tasks')">Download CSV</button>
                     </div>
-                    <div class="input-group"><label>Protégé</label><select id="sel-user-habit"
-                            class="form-control"></select></div>
-                    <div class="input-group"><button class="btn-secondary" style="width:100%"
-                            onclick="handleAssignHabit()">Assign</button></div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-repeat"></i> Habits</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all habit metrics.</p>
+                        <button class="btn-secondary" onclick="exportData('habits')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-handshake"></i> Assignments</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.
+                        </p>
+                        <button class="btn-secondary" onclick="exportData('cp')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-clipboard-check"></i> Task Status</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.
+                        </p>
+                        <button class="btn-secondary" onclick="exportData('t_assign')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-comments"></i> Q&A Archive</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all questions.</p>
+                        <button class="btn-secondary" onclick="exportData('qs')">Download CSV</button>
+                    </div>
                 </div>
             </div>
-            <div class="card">
-                <table id="table-habits-active">
-                    <thead>
-                        <tr>
-                            <th>Habit</th>
-                            <th>User</th>
-                            <th>Assigned At</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
-    <!-- 5. Q&A -->
-    <div id="view-qa" class="view hidden">
-        <div class="card">
-            <h3>Moderation Queue</h3>
-            <table id="table-qa">
-                <thead>
-                    <tr>
-                        <th>Question</th>
-                        <th>User</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 6. REPORTS -->
-    <div id="view-reports" class="view hidden">
-        <div class="card">
-            <h3><i class="fa-solid fa-graduation-cap"></i> Qualified Protégés Report</h3>
-            <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks before
-                deadline and meet consistency criteria.</p>
-
-            <div class="form-grid" style="align-items:end; margin-bottom:1.5rem">
-                <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons" type="number"
-                        value="80" class="form-control"></div>
-                <div class="input-group"><label>Task Deadline Check</label><select class="form-control" disabled>
-                        <option>Must be before deadline</option>
-                    </select></div>
-                <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run
-                        Analysis</button></div>
-            </div>
-
-            <div id="report-results" class="hidden">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
-                    <h4>Results</h4>
-                    <button class="btn-secondary" onclick="exportReport()"><i class="fa-solid fa-file-export"></i>
-                        Download CSV</button>
-                </div>
-                <table id="table-report">
-                    <thead>
-                        <tr>
-                            <th>Protégé</th>
-                            <th>Task Status</th>
-                            <th>Habit Consistency</th>
-                            <th>Result</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7. DATA EXPORTS (NEW) -->
-    <div id="view-exports" class="view hidden">
-        <h2>Data Export Center</h2>
-        <div class="form-grid">
-            <div class="card">
-                <h3><i class="fa-solid fa-users"></i> Users Data</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.</p>
-                <button class="btn-secondary" onclick="exportData('users')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all task definitions.</p>
-                <button class="btn-secondary" onclick="exportData('tasks')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-repeat"></i> Habits</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all habit metrics.</p>
-                <button class="btn-secondary" onclick="exportData('habits')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-handshake"></i> Assignments</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.</p>
-                <button class="btn-secondary" onclick="exportData('cp')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-clipboard-check"></i> Task Status</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.</p>
-                <button class="btn-secondary" onclick="exportData('t_assign')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-comments"></i> Q&A Archive</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all questions.</p>
-                <button class="btn-secondary" onclick="exportData('qs')">Download CSV</button>
-            </div>
-        </div>
-    </div>
-
-    </main>
+        </main>
     </div> <!-- END app-dashboard -->
 
     <!-- LOADING -->
@@ -1104,6 +1114,7 @@
             if (session) {
                 // NOW we can clear the hash visually
                 if (window.location.hash) {
+                    // CRITICAL: Remove the hash (contains access_token) so it isn't copied by accident
                     history.replaceState(null, null, window.location.pathname);
                 }
 
@@ -1166,7 +1177,16 @@
 
         // AUTH HANDLERS
         async function handleLogout() {
-            await client.auth.signOut();
+            try {
+                await client.auth.signOut();
+            } catch (err) {
+                console.error("SignOut err:", err);
+            }
+            // Force clear everything
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Reload into clean state
             window.location.hash = '';
             window.location.reload();
         }
