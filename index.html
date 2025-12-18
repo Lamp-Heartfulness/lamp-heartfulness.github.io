@@ -6,11 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LAMP Admin | Heartfulness</title>
 
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -48,22 +46,19 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
+            display: flex; /* Ensure body is flex for layout */
         }
 
-        #app-dashboard {
-            display: flex;
-            height: 100%;
-            width: 100%;
-        }
-
+        /* --- AUTH LAYOUT --- */
         #app-auth {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100%;
             width: 100%;
-            /* Fix centering */
             background: var(--bg-page);
+            position: absolute; /* Overlay logic */
+            z-index: 50;
         }
 
         .auth-card {
@@ -87,21 +82,7 @@
             margin-bottom: 2rem;
         }
 
-        /* Removed Tabs Styles */
-
-
-        /* --- LAYOUT --- */
-        aside {
-            width: 260px;
-            background: #FFFFFF;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            z-index: 10;
-        }
-
-        /* DASHBOARD APP CONTAINER */
+        /* --- DASHBOARD LAYOUT --- */
         #app-dashboard {
             display: flex;
             height: 100vh;
@@ -109,61 +90,14 @@
             width: 100%;
         }
 
-        /* Profile Widget */
-        .profile-widget {
+        aside {
+            width: 260px;
+            background: #FFFFFF;
+            border-right: 1px solid var(--border);
             display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            cursor: pointer;
-            padding: 0.8rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            transition: 0.2s;
-            position: relative;
-            /* For popup positioning */
-        }
-
-        .profile-widget:hover {
-            background: var(--bg-page);
-        }
-
-        .logout-pop {
-            position: absolute;
-            top: 100%;
-            /* Below widget */
-            left: 0;
-            width: 220px;
-            background: white;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            border-radius: 8px;
-            padding: 0.5rem;
-            display: none;
-            z-index: 50;
-        }
-
-        /* Show popup on hover of widget */
-        .profile-widget:hover .logout-pop {
-            display: block;
-        }
-
-        .logout-pop.active {
-            display: block;
-        }
-
-        .pop-item {
-            padding: 0.6rem;
-            color: #ef4444;
-            cursor: pointer;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .pop-item:hover {
-            background: #fee2e2;
+            flex-direction: column;
+            padding: 1.5rem;
+            z-index: 20;
         }
 
         main {
@@ -173,266 +107,16 @@
             position: relative;
         }
 
+        /* --- CENTER ALIGNMENT FIX --- */
+        /* Applied to specific views to center them */
+        .view-centered {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+
         /* --- COMPONENTS --- */
-        .brand {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .nav-item {
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 8px;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover {
-            background: var(--primary-soft);
-            color: var(--primary);
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow);
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        h3 {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        /* --- FORMS --- */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .input-group {
-            margin-bottom: 1rem;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 0.4rem;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid #D1D5DB;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            transition: border 0.2s;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            ring: 2px var(--primary-soft);
-        }
-
-        button {
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: white;
-            border: 1px solid #D1D5DB;
-            color: var(--text-main);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--text-muted);
-        }
-
-        /* --- TABLES --- */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th {
-            text-align: left;
-            padding: 1rem;
-            background: #F9FAFB;
-            color: var(--text-muted);
-            font-weight: 600;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            color: #4B5563;
-        }
-
-        .badge {
-            padding: 0.2rem 0.6rem;
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        /* --- UTILS --- */
-        .hidden {
-            display: none !important;
-        }
-
-        .view {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* --- ANALYTICS --- */
-        .chart-box {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .kpi-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        .kpi-val {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-top: 0.5rem;
-        }
-
-        .kpi-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        /* --- DEBUG OVERLAY --- */
-        #loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.9);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #E5E7EB;
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* --- LAYOUT --- */
-        body {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* SIDEBAR */
-        aside {
-            width: 260px;
-            background: white;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            z-index: 20;
-        }
-
         .brand {
             font-size: 1.25rem;
             font-weight: 700;
@@ -453,7 +137,6 @@
             margin-bottom: 0.25rem;
             color: var(--text-muted);
             border-radius: 6px;
-            /* Sharper */
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.9rem;
@@ -469,17 +152,14 @@
             background: var(--primary);
             color: white;
             font-weight: 600;
+            box-shadow: var(--shadow);
         }
 
-        /* MAIN */
-        main {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-            position: relative;
+        .nav-item i {
+            width: 20px;
+            text-align: center;
         }
 
-        /* TOP HEADER */
         .top-header {
             display: flex;
             justify-content: space-between;
@@ -489,7 +169,6 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* PROFILE WIDGET (Header) */
         .profile-widget {
             display: flex;
             align-items: center;
@@ -500,6 +179,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             transition: 0.2s;
+            position: relative;
         }
 
         .profile-widget:hover {
@@ -518,38 +198,127 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
+
+        .logout-pop {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 220px;
+            background: white;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: 8px;
+            padding: 0.8rem;
+            display: none;
+            z-index: 50;
+            margin-top: 5px;
+        }
+
+        .profile-widget:hover .logout-pop {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 600; color: #111827; }
+        h3 { font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; color: #374151; }
+
+        /* --- FORMS --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .input-group { margin-bottom: 1rem; }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: 2px solid var(--primary-soft);
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background: white; border: 1px solid #D1D5DB; color: var(--text-main); }
+        .btn-secondary:hover { border-color: var(--text-muted); }
+
+        /* --- TABLES --- */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 1rem; background: #F9FAFB; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); color: #4B5563; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
+        .view { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ANALYTICS --- */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .kpi-val { font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; }
+        .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+        /* --- LOADING --- */
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #E5E7EB; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
 <body>
 
-
-
-    <!-- AUTH APP -->
     <div id="app-auth">
         <div class="auth-card">
             <h1>Heartfulness Admin</h1>
             <p>Sign in to continue</p>
 
             <div id="view-signin">
-
-
-                <!-- OTP / OLD MAGIC LINK FORM -->
                 <form id="form-magic" onsubmit="handleSendOtp(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email address</label>
-                        <input id="otp-email" name="email" type="email" class="form-control" required
-                            placeholder="you@example.com">
+                        <input id="otp-email" name="email" type="email" class="form-control" required placeholder="you@example.com">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send
-                        OTP</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Send OTP</button>
                     <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('password')"
-                            style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
+                        <a href="#" onclick="switchAuth('password')" style="color:#0F766E; text-decoration:none; font-weight:500">Log In with Password</a>
                     </p>
                 </form>
 
-                <!-- VERIFY OTP VIEW (Hidden) -->
                 <div id="view-otp" class="hidden">
                     <h3>Check your Email</h3>
                     <p style="font-size:0.9rem; color:#666">
@@ -559,38 +328,31 @@
                     <form onsubmit="handleVerifyOtp(event)">
                         <div class="input-group" style="text-align:left">
                             <label>6-digit Code (if available)</label>
-                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6"
-                                style="letter-spacing:4px; font-size:1.2rem; text-align:center">
+                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center">
                         </div>
-                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set
-                            Password</button>
+                        <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set Password</button>
                         <p style="margin-top:1rem; font-size:0.9rem">
                             <a href="#" onclick="location.reload()" style="color:#64748b">Back</a>
                         </p>
                     </form>
                 </div>
 
-                <!-- EMAIL/PASS LOGIN (HIDDEN) -->
                 <form id="form-password" class="hidden" onsubmit="handleLogin(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email</label>
-                        <input name="email" type="email" class="form-control" required
-                            placeholder="admin@heartfulness.org">
+                        <input name="email" type="email" class="form-control" required placeholder="admin@heartfulness.org">
                     </div>
                     <div class="input-group" style="text-align:left">
                         <label>Password</label>
                         <input name="password" type="password" class="form-control" required placeholder="••••••••">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Sign
-                        In</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Sign In</button>
                     <p style="margin-top:1.5rem; font-size:0.9rem">
-                        <a href="#" onclick="switchAuth('magic')"
-                            style="color:#0F766E; text-decoration:none; font-weight:500">Send Magic Link</a>
+                        <a href="#" onclick="switchAuth('magic')" style="color:#0F766E; text-decoration:none; font-weight:500">Send Magic Link</a>
                     </p>
                 </form>
             </div>
 
-            <!-- SET PASSWORD VIEW (Hidden by default) -->
             <div id="view-setpass" class="hidden">
                 <h3>Set New Password</h3>
                 <p>Secure your account</p>
@@ -599,8 +361,7 @@
                         <label>New Password</label>
                         <input type="password" id="new-password" class="form-control" required minlength="6">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update
-                        Password</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update Password</button>
                 </form>
             </div>
 
@@ -608,90 +369,62 @@
         </div>
     </div>
 
-    <!-- DASHBOARD APP -->
     <div id="app-dashboard" class="hidden">
-        <!-- SIDEBAR -->
         <aside>
             <div class="brand">
-                <!-- No Icon, text only -->
                 <span>LAMP <span style="font-weight:400; color:var(--text-muted)">Admin</span></span>
             </div>
             <nav id="sidebar-nav">
-                <div class="nav-item active" data-target="dashboard" onclick="router('dashboard')"><i
-                        class="fa-solid fa-chart-line"></i> Dashboard</div>
-                <div class="nav-item" data-target="users" onclick="router('users')"><i class="fa-solid fa-users"></i>
-                    Users
-                </div>
-                <div class="nav-item" data-target="assignments" onclick="router('assignments')"><i
-                        class="fa-solid fa-handshake"></i> Mentorship</div>
-                <div class="nav-item" data-target="curriculum" onclick="router('curriculum')"><i
-                        class="fa-solid fa-book-open"></i> Tasks & Habits</div>
-                <div class="nav-item" data-target="qa" onclick="router('qa')"><i class="fa-solid fa-comments"></i>
-                    Q&A
-                    Moderation</div>
-                <div class="nav-item" data-target="reports" onclick="router('reports')"><i
-                        class="fa-solid fa-clipboard-check"></i> Smart Reports</div>
-                <div class="nav-item" data-target="exports" onclick="router('exports')"><i
-                        class="fa-solid fa-file-export"></i> Data Export</div>
+                <div class="nav-item active" data-target="dashboard" onclick="router('dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</div>
+                <div class="nav-item" data-target="users" onclick="router('users')"><i class="fa-solid fa-users"></i> Users</div>
+                <div class="nav-item" data-target="assignments" onclick="router('assignments')"><i class="fa-solid fa-handshake"></i> Mentorship</div>
+                <div class="nav-item" data-target="curriculum" onclick="router('curriculum')"><i class="fa-solid fa-book-open"></i> Tasks & Habits</div>
+                <div class="nav-item" data-target="qa" onclick="router('qa')"><i class="fa-solid fa-comments"></i> Q&A Moderation</div>
+                <div class="nav-item" data-target="reports" onclick="router('reports')"><i class="fa-solid fa-clipboard-check"></i> Smart Reports</div>
+                <div class="nav-item" data-target="exports" onclick="router('exports')"><i class="fa-solid fa-file-export"></i> Data Export</div>
             </nav>
             <div style="flex:1"></div>
-            <!-- Changed Logout to Refresh Data -->
-            <div class="nav-item" style="color:var(--primary)" onclick="refreshData()"><i class="fa-solid fa-sync"></i>
-                Refresh Data</div>
+            <div class="nav-item" style="color:var(--primary)" onclick="refreshData()"><i class="fa-solid fa-sync"></i> Refresh Data</div>
         </aside>
 
-        <!-- CONTENT -->
         <main>
-            <!-- TOP HEADER BAR -->
             <header class="top-header">
                 <div>
-                    <h1 style="font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:0.25rem">Heartfulness
-                    </h1>
+                    <h1 style="font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:0.25rem">Heartfulness</h1>
                     <p style="color:#64748b; font-size:0.875rem">Learning and Mentorship Program</p>
                 </div>
 
                 <div style="position:relative">
-                    <!-- Wrapped in relative container for hover menu -->
                     <div class="profile-widget">
                         <div class="avatar">AD</div>
                         <div class="p-info">
-                            <span class="p-name" style="display:block; font-size:0.875rem; font-weight:600">Admin
-                                User</span>
-                            <span class="p-role" style="display:block; font-size:0.7rem; color:var(--text-muted)">Super
-                                Admin</span>
+                            <span class="p-name" style="display:block; font-size:0.875rem; font-weight:600">Admin User</span>
+                            <span class="p-role" style="display:block; font-size:0.7rem; color:var(--text-muted)">Super Admin</span>
                         </div>
-
-                        <!-- NESTED POPUP for CSS Hover -->
                         <div class="logout-pop">
-                            <div
-                                style="font-size:0.85rem; color:#64748b; margin-bottom:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #e2e8f0">
+                            <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #e2e8f0">
                                 Logged in as Admin
                             </div>
-                            <button onclick="handleLogout()"
-                                style="width:100%; text-align:left; padding:0.5rem; background:none; border:none; color:#ef4444; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
+                            <button onclick="handleLogout()" style="width:100%; text-align:left; padding:0.5rem; background:none; border:none; color:#ef4444; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
                             </button>
                         </div>
                     </div>
                 </div>
             </header>
-            <!-- 1. DASHBOARD -->
+
             <div id="view-dashboard" class="view">
                 <h2>System Overview</h2>
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <div class="kpi-label">Total Users</div>
                         <div class="kpi-val" id="kpi-users">-</div>
-                        <div id="kpi-breakdown"
-                            style="font-size:0.8rem; color:#6B7280; margin-top:0.5rem; line-height:1.4">
-                            <!-- Insterted by JS -->
-                        </div>
+                        <div id="kpi-breakdown" style="font-size:0.8rem; color:#6B7280; margin-top:0.5rem; line-height:1.4"></div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Active Tasks</div>
                         <div class="kpi-val" id="kpi-tasks">-</div>
-                        <div style="font-size:0.8rem; color:green; margin-top:0.5rem"><i
-                                class="fa-solid fa-arrow-trend-up"></i> Live Tracking</div>
+                        <div style="font-size:0.8rem; color:green; margin-top:0.5rem"><i class="fa-solid fa-arrow-trend-up"></i> Live Tracking</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Pending Q&A</div>
@@ -706,80 +439,29 @@
                 </div>
 
                 <h3 style="margin-top:2rem; margin-bottom:1rem">Real-Time Analytics Console</h3>
-                <!-- CHARTS GRID -->
-                <div
-                    style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem">
-                    <!-- 1. Roles -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-users-gear"></i> Role Distribution</h4>
-                        <div style="height:250px"><canvas id="c1_roles"></canvas></div>
-                    </div>
-                    <!-- 2. Activity -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-wave-square"></i> Activity Pulse (7 Days)</h4>
-                        <div style="height:250px"><canvas id="c2_activity"></canvas></div>
-                    </div>
-                    <!-- 3. Performance -->
-                    <div class="card" style="min-height:300px; grid-column: span 2">
-                        <h4><i class="fa-solid fa-microscope"></i> Protégé Performance Matrix</h4>
-                        <div style="height:250px"><canvas id="c3_scatter"></canvas></div>
-                    </div>
-                    <!-- 4. Task Status -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-chart-pie"></i> Global Task Status</h4>
-                        <div style="height:250px"><canvas id="c4_taskstatus"></canvas></div>
-                    </div>
-                    <!-- 5. Velocity -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-bars-progress"></i> Task Velocity (Top Users)</h4>
-                        <div style="height:250px"><canvas id="c5_velocity"></canvas></div>
-                    </div>
-                    <!-- 6. Chaperone Load -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-chalkboard-user"></i> Chaperone Load</h4>
-                        <div style="height:250px"><canvas id="c6_chaperone"></canvas></div>
-                    </div>
-                    <!-- 7. Habits -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-fire"></i> Top Habit Streaks</h4>
-                        <div style="height:250px"><canvas id="c7_habits"></canvas></div>
-                    </div>
-                    <!-- 8. Locations -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-map-location-dot"></i> User Locations</h4>
-                        <div style="height:250px"><canvas id="c8_location"></canvas></div>
-                    </div>
-                    <!-- 9. Gender -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-venus-mars"></i> Demographics</h4>
-                        <div style="height:250px"><canvas id="c9_gender"></canvas></div>
-                    </div>
-                    <!-- 10. Q&A -->
-                    <div class="card" style="min-height:300px">
-                        <h4><i class="fa-solid fa-comments"></i> Q&A Moderation</h4>
-                        <div style="height:250px"><canvas id="c10_qa"></canvas></div>
-                    </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem">
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-users-gear"></i> Role Distribution</h4><div style="height:250px"><canvas id="c1_roles"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-wave-square"></i> Activity Pulse (7 Days)</h4><div style="height:250px"><canvas id="c2_activity"></canvas></div></div>
+                    <div class="card" style="min-height:300px; grid-column: span 2"><h4><i class="fa-solid fa-microscope"></i> Protégé Performance Matrix</h4><div style="height:250px"><canvas id="c3_scatter"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-chart-pie"></i> Global Task Status</h4><div style="height:250px"><canvas id="c4_taskstatus"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-bars-progress"></i> Task Velocity (Top Users)</h4><div style="height:250px"><canvas id="c5_velocity"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-chalkboard-user"></i> Chaperone Load</h4><div style="height:250px"><canvas id="c6_chaperone"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-fire"></i> Top Habit Streaks</h4><div style="height:250px"><canvas id="c7_habits"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-map-location-dot"></i> User Locations</h4><div style="height:250px"><canvas id="c8_location"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-venus-mars"></i> Demographics</h4><div style="height:250px"><canvas id="c9_gender"></canvas></div></div>
+                    <div class="card" style="min-height:300px"><h4><i class="fa-solid fa-comments"></i> Q&A Moderation</h4><div style="height:250px"><canvas id="c10_qa"></canvas></div></div>
                 </div>
             </div>
 
-            <!-- 2. USERS -->
             <div id="view-users" class="view hidden">
-                <!-- Modal for CSV Import -->
-                <div id="modal-import"
-                    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center">
+                <div id="modal-import" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center">
                     <div class="card" style="width:400px; max-width:90%; position:relative">
-                        <button onclick="document.getElementById('modal-import').style.display='none'"
-                            style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:1.2rem; cursor:pointer">&times;</button>
+                        <button onclick="document.getElementById('modal-import').style.display='none'" style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:1.2rem; cursor:pointer">&times;</button>
                         <h3>Bulk Import Users</h3>
-                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Upload a CSV file with headers:
-                            <code>Name, email, role</code>
-                        </p>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Upload a CSV file with headers: <code>Name, email, role</code></p>
                         <input type="file" id="csv-file" accept=".csv" class="form-control" style="margin-bottom:1rem">
-                        <button class="btn-primary" style="width:100%" onclick="handleBulkImport()">Start
-                            Import</button>
-                        <div id="import-log"
-                            style="margin-top:1rem; font-size:0.85rem; max-height:150px; overflow-y:auto; color:#4B5563">
-                        </div>
+                        <button class="btn-primary" style="width:100%" onclick="handleBulkImport()">Start Import</button>
+                        <div id="import-log" style="margin-top:1rem; font-size:0.85rem; max-height:150px; overflow-y:auto; color:#4B5563"></div>
                     </div>
                 </div>
 
@@ -787,29 +469,14 @@
                     <h3><i class="fa-solid fa-user-plus"></i> Add New User</h3>
                     <form onsubmit="handleCreateUser(event)">
                         <div class="form-grid">
-                            <div class="input-group"><label>Full Name</label><input name="Name" class="form-control"
-                                    required></div>
-                            <div class="input-group"><label>Email</label><input name="email" type="email"
-                                    class="form-control"></div>
-                            <div class="input-group"><label>Role</label><select name="role" class="form-control">
-                                    <option value="protege">Protégé</option>
-                                    <option value="chaperone">Chaperone</option>
-                                    <option value="admin">Admin</option>
-                                </select></div>
-                            <div class="input-group"><label>HFN ID</label><input name="HFN_ID" class="form-control">
-                            </div>
-                            <div class="input-group"><label>Age</label><input name="Age" type="number"
-                                    class="form-control">
-                            </div>
-                            <div class="input-group"><label>Gender</label><select name="Gender" class="form-control">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select></div>
-                            <div class="input-group"><label>Phone</label><input name="phone" class="form-control">
-                            </div>
-                            <div class="input-group"><label>Location</label><input name="location" class="form-control">
-                            </div>
+                            <div class="input-group"><label>Full Name</label><input name="Name" class="form-control" required></div>
+                            <div class="input-group"><label>Email</label><input name="email" type="email" class="form-control"></div>
+                            <div class="input-group"><label>Role</label><select name="role" class="form-control"><option value="protege">Protégé</option><option value="chaperone">Chaperone</option><option value="admin">Admin</option></select></div>
+                            <div class="input-group"><label>HFN ID</label><input name="HFN_ID" class="form-control"></div>
+                            <div class="input-group"><label>Age</label><input name="Age" type="number" class="form-control"></div>
+                            <div class="input-group"><label>Gender</label><select name="Gender" class="form-control"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                            <div class="input-group"><label>Phone</label><input name="phone" class="form-control"></div>
+                            <div class="input-group"><label>Location</label><input name="location" class="form-control"></div>
                         </div>
                         <button type="submit" class="btn-primary">Create User</button>
                     </form>
@@ -817,270 +484,178 @@
                 <div class="card">
                     <h3>User Directory</h3>
                     <div style="display:flex; gap:0.5rem">
-                        <button class="btn-primary"
-                            onclick="document.getElementById('modal-import').style.display='flex'"><i
-                                class="fa-solid fa-file-csv"></i> Import CSV</button>
-                        <button class="btn-secondary" onclick="exportData('Users')"><i class="fa-solid fa-download"></i>
-                            CSV</button>
+                        <button class="btn-primary" onclick="document.getElementById('modal-import').style.display='flex'"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
+                        <button class="btn-secondary" onclick="exportData('Users')"><i class="fa-solid fa-download"></i> CSV</button>
                     </div>
                 </div>
                 <div style="overflow-x:auto">
                     <table id="table-users">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>HFN ID</th>
-                                <th>Location</th>
-                                <th>Contact</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Name</th><th>Role</th><th>HFN ID</th><th>Location</th><th>Contact</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
             </div>
-    </div>
-    </div>
 
-    <!-- 3. ASSIGNMENTS -->
-    <div id="view-assignments" class="view hidden">
-        <div class="card">
-            <h3>Assign Chaperone</h3>
-            <div class="form-grid" style="align-items:end">
-                <div class="input-group"><label>Chaperone</label><select id="sel-chap" class="form-control"></select>
+            <div id="view-assignments" class="view view-centered hidden">
+                <div class="card">
+                    <h3>Assign Chaperone</h3>
+                    <div class="form-grid" style="align-items:end">
+                        <div class="input-group"><label>Chaperone</label><select id="sel-chap" class="form-control"></select></div>
+                        <div class="input-group"><label>Protégé</label><select id="sel-prot" class="form-control"></select></div>
+                        <div class="input-group"><button class="btn-primary" style="width:100%" onclick="handleLinkCP()">Link Profiles</button></div>
+                    </div>
                 </div>
-                <div class="input-group"><label>Protégé</label><select id="sel-prot" class="form-control"></select>
+                <div class="card">
+                    <h3>Mentorship Links</h3>
+                    <table id="table-cp">
+                        <thead><tr><th>Chaperone</th><th>Protégé</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-                <div class="input-group"><button class="btn-primary" style="width:100%" onclick="handleLinkCP()">Link
-                        Profiles</button></div>
             </div>
-        </div>
-        <div class="card">
-            <h3>Mentorship Links</h3>
-            <table id="table-cp">
-                <thead>
-                    <tr>
-                        <th>Chaperone</th>
-                        <th>Protégé</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- 4. CURRICULUM -->
-    <div id="view-curriculum" class="view hidden">
-        <div style="margin-bottom:1.5rem; display:flex; gap:1rem">
-            <button class="btn-primary" onclick="toggleCurr('task')" id="btn-task">Tasks</button>
-            <button class="btn-secondary" onclick="toggleCurr('habit')" id="btn-habit">Habits</button>
-        </div>
+            <div id="view-curriculum" class="view view-centered hidden">
+                <div style="margin-bottom:1.5rem; display:flex; gap:1rem">
+                    <button class="btn-primary" onclick="toggleCurr('task')" id="btn-task">Tasks</button>
+                    <button class="btn-secondary" onclick="toggleCurr('habit')" id="btn-habit">Habits</button>
+                </div>
 
-        <!-- Tasks -->
-        <div id="section-task">
-            <div class="card" style="border-left:4px solid var(--primary)">
-                <h3>Create Task</h3>
-                <form onsubmit="handleCreateTask(event)">
-                    <div class="form-grid">
-                        <div class="input-group"><label>Task Name</label><input name="name" class="form-control"
-                                required>
-                        </div>
-                        <div class="input-group"><label>Type</label><select name="type" class="form-control">
-                                <option value="knowledge">Knowledge</option>
-                                <option value="experimental">Experimental</option>
-                            </select></div>
-                        <div class="input-group"><label>Deadline</label><input name="deadline" type="date"
-                                class="form-control"></div>
-                        <!-- MEDIA FIELDS -->
-                        <div class="input-group"><label>Video URL</label><input name="video_url" class="form-control"
-                                placeholder="https://youtube..."></div>
-                        <div class="input-group"><label>Document URL</label><input name="document_url"
-                                class="form-control" placeholder="https://drive..."></div>
-                        <div class="input-group"><label>Photos (Comma separated URLs)</label><input name="photos_str"
-                                class="form-control"></div>
-                        <!-- END MEDIA -->
-                        <div class="input-group"><label>Description</label><input name="description"
-                                class="form-control">
+                <div id="section-task">
+                    <div class="card" style="border-left:4px solid var(--primary)">
+                        <h3>Create Task</h3>
+                        <form onsubmit="handleCreateTask(event)">
+                            <div class="form-grid">
+                                <div class="input-group"><label>Task Name</label><input name="name" class="form-control" required></div>
+                                <div class="input-group"><label>Type</label><select name="type" class="form-control"><option value="knowledge">Knowledge</option><option value="experimental">Experimental</option></select></div>
+                                <div class="input-group"><label>Deadline</label><input name="deadline" type="date" class="form-control"></div>
+                                <div class="input-group"><label>Video URL</label><input name="video_url" class="form-control" placeholder="https://youtube..."></div>
+                                <div class="input-group"><label>Document URL</label><input name="document_url" class="form-control" placeholder="https://drive..."></div>
+                                <div class="input-group"><label>Photos (Comma separated URLs)</label><input name="photos_str" class="form-control"></div>
+                                <div class="input-group"><label>Description</label><input name="description" class="form-control"></div>
+                            </div>
+                            <button type="submit" class="btn-primary">Create Task</button>
+                        </form>
+                        <hr style="margin:1.5rem 0; border-color:var(--border)">
+                        <h3>Assign Task</h3>
+                        <div class="form-grid" style="align-items:end">
+                            <div class="input-group"><label>Task</label><select id="sel-task" class="form-control"></select></div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-task" class="form-control"></select></div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%" onclick="handleAssignTask()">Assign</button></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary">Create Task</button>
-                </form>
-                <hr style="margin:1.5rem 0; border-color:var(--border)">
-                <h3>Assign Task</h3>
-                <div class="form-grid" style="align-items:end">
-                    <div class="input-group"><label>Task</label><select id="sel-task" class="form-control"></select>
+                    <div class="card">
+                        <table id="table-tasks-active">
+                            <thead><tr><th>Task</th><th>User</th><th>Assigned By</th><th>Deadline</th><th>Status</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <div class="input-group"><label>Protégé</label><select id="sel-user-task"
-                            class="form-control"></select>
-                    </div>
-                    <div class="input-group"><button class="btn-secondary" style="width:100%"
-                            onclick="handleAssignTask()">Assign</button></div>
                 </div>
-            </div>
-            <div class="card">
-                <table id="table-tasks-active">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                            <th>User</th>
-                            <th>Assigned By</th>
-                            <th>Deadline</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Habits -->
-        <div id="section-habit" class="hidden">
-            <div class="card" style="border-left:4px solid var(--success)">
-                <h3>Create Habit</h3>
-                <form onsubmit="handleCreateHabit(event)">
-                    <div class="form-grid">
-                        <div class="input-group"><label>Habit Name</label><input name="name" class="form-control"
-                                required>
-                        </div>
-                        <div class="input-group"><label>Description</label><input name="description"
-                                class="form-control">
+                <div id="section-habit" class="hidden">
+                    <div class="card" style="border-left:4px solid var(--success)">
+                        <h3>Create Habit</h3>
+                        <form onsubmit="handleCreateHabit(event)">
+                            <div class="form-grid">
+                                <div class="input-group"><label>Habit Name</label><input name="name" class="form-control" required></div>
+                                <div class="input-group"><label>Description</label><input name="description" class="form-control"></div>
+                            </div>
+                            <button type="submit" class="btn-primary" style="background:var(--success)">Create Habit</button>
+                        </form>
+                        <hr style="margin:1.5rem 0; border-color:var(--border)">
+                        <h3>Assign Habit</h3>
+                        <div class="form-grid" style="align-items:end">
+                            <div class="input-group"><label>Habit</label><select id="sel-habit" class="form-control"></select></div>
+                            <div class="input-group"><label>Protégé</label><select id="sel-user-habit" class="form-control"></select></div>
+                            <div class="input-group"><button class="btn-secondary" style="width:100%" onclick="handleAssignHabit()">Assign</button></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary" style="background:var(--success)">Create
-                        Habit</button>
-                </form>
-                <hr style="margin:1.5rem 0; border-color:var(--border)">
-                <h3>Assign Habit</h3>
-                <div class="form-grid" style="align-items:end">
-                    <div class="input-group"><label>Habit</label><select id="sel-habit" class="form-control"></select>
+                    <div class="card">
+                        <table id="table-habits-active">
+                            <thead><tr><th>Habit</th><th>User</th><th>Assigned At</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <div class="input-group"><label>Protégé</label><select id="sel-user-habit"
-                            class="form-control"></select></div>
-                    <div class="input-group"><button class="btn-secondary" style="width:100%"
-                            onclick="handleAssignHabit()">Assign</button></div>
                 </div>
             </div>
-            <div class="card">
-                <table id="table-habits-active">
-                    <thead>
-                        <tr>
-                            <th>Habit</th>
-                            <th>User</th>
-                            <th>Assigned At</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
-    <!-- 5. Q&A -->
-    <div id="view-qa" class="view hidden">
-        <div class="card">
-            <h3>Moderation Queue</h3>
-            <table id="table-qa">
-                <thead>
-                    <tr>
-                        <th>Question</th>
-                        <th>User</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 6. REPORTS -->
-    <div id="view-reports" class="view hidden">
-        <div class="card">
-            <h3><i class="fa-solid fa-graduation-cap"></i> Qualified Protégés Report</h3>
-            <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks before
-                deadline and meet consistency criteria.</p>
-
-            <div class="form-grid" style="align-items:end; margin-bottom:1.5rem">
-                <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons" type="number"
-                        value="80" class="form-control"></div>
-                <div class="input-group"><label>Task Deadline Check</label><select class="form-control" disabled>
-                        <option>Must be before deadline</option>
-                    </select></div>
-                <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run
-                        Analysis</button></div>
-            </div>
-
-            <div id="report-results" class="hidden">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
-                    <h4>Results</h4>
-                    <button class="btn-secondary" onclick="exportReport()"><i class="fa-solid fa-file-export"></i>
-                        Download CSV</button>
+            <div id="view-qa" class="view view-centered hidden">
+                <div class="card">
+                    <h3>Moderation Queue</h3>
+                    <table id="table-qa">
+                        <thead><tr><th>Question</th><th>User</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-                <table id="table-report">
-                    <thead>
-                        <tr>
-                            <th>Protégé</th>
-                            <th>Task Status</th>
-                            <th>Habit Consistency</th>
-                            <th>Result</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
-        </div>
+
+            <div id="view-reports" class="view view-centered hidden">
+                <div class="card">
+                    <h3><i class="fa-solid fa-graduation-cap"></i> Qualified Protégés Report</h3>
+                    <p style="color:var(--text-muted); margin-bottom:1rem">Filter users who have finished all tasks before deadline and meet consistency criteria.</p>
+
+                    <div class="form-grid" style="align-items:end; margin-bottom:1.5rem">
+                        <div class="input-group"><label>Min Habit Consistency (%)</label><input id="rep-cons" type="number" value="80" class="form-control"></div>
+                        <div class="input-group"><label>Task Deadline Check</label><select class="form-control" disabled><option>Must be before deadline</option></select></div>
+                        <div class="input-group"><button class="btn-primary" onclick="generateReport()">Run Analysis</button></div>
+                    </div>
+
+                    <div id="report-results" class="hidden">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
+                            <h4>Results</h4>
+                            <button class="btn-secondary" onclick="exportReport()"><i class="fa-solid fa-file-export"></i> Download CSV</button>
+                        </div>
+                        <table id="table-report">
+                            <thead><tr><th>Protégé</th><th>Task Status</th><th>Habit Consistency</th><th>Result</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-exports" class="view view-centered hidden">
+                <h2>Data Export Center</h2>
+                <div class="form-grid">
+                    <div class="card">
+                        <h3><i class="fa-solid fa-users"></i> Users Data</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.</p>
+                        <button class="btn-secondary" onclick="exportData('users')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all task definitions.</p>
+                        <button class="btn-secondary" onclick="exportData('tasks')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-repeat"></i> Habits</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all habit metrics.</p>
+                        <button class="btn-secondary" onclick="exportData('habits')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-handshake"></i> Assignments</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.</p>
+                        <button class="btn-secondary" onclick="exportData('cp')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-clipboard-check"></i> Task Status</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.</p>
+                        <button class="btn-secondary" onclick="exportData('t_assign')">Download CSV</button>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-solid fa-comments"></i> Q&A Archive</h3>
+                        <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all questions.</p>
+                        <button class="btn-secondary" onclick="exportData('qs')">Download CSV</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <!-- 7. DATA EXPORTS (NEW) -->
-    <div id="view-exports" class="view hidden">
-        <h2>Data Export Center</h2>
-        <div class="form-grid">
-            <div class="card">
-                <h3><i class="fa-solid fa-users"></i> Users Data</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export list of all registered users.</p>
-                <button class="btn-secondary" onclick="exportData('users')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all task definitions.</p>
-                <button class="btn-secondary" onclick="exportData('tasks')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-repeat"></i> Habits</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all habit metrics.</p>
-                <button class="btn-secondary" onclick="exportData('habits')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-handshake"></i> Assignments</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export Chaperone-Protégé mappings.</p>
-                <button class="btn-secondary" onclick="exportData('cp')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-clipboard-check"></i> Task Status</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export status of all assigned tasks.</p>
-                <button class="btn-secondary" onclick="exportData('t_assign')">Download CSV</button>
-            </div>
-            <div class="card">
-                <h3><i class="fa-solid fa-comments"></i> Q&A Archive</h3>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:1rem">Export all questions.</p>
-                <button class="btn-secondary" onclick="exportData('qs')">Download CSV</button>
-            </div>
-        </div>
-    </div>
-
-    </main>
-    </div> <!-- END app-dashboard -->
-
-    <!-- LOADING -->
     <div id="loading-overlay">
         <div class="spinner"></div>
         <div style="margin-top:1rem; font-weight:500">Connecting to Heartfulness Database...</div>
     </div>
 
-    <!-- JS LOGIC -->
     <script>
         // CONFIG
         const SUPABASE_URL = 'https://gmrqcoisfoghljwqiuys.supabase.co';
@@ -1093,19 +668,13 @@
 
         // INIT
         window.addEventListener('load', async () => {
-            // Priority: Check for Recovery OR Magic Link Hash FIRST
             const hash = window.location.hash;
             const isRecovery = hash && (hash.includes('type=recovery') || hash.includes('type=magiclink') || hash.includes('type=signup'));
 
-            // 1. Initialize Session directly (let Supabase read the hash)
             const { data: { session } } = await client.auth.getSession();
 
-            // 2. Logic based on Session State
             if (session) {
-                // NOW we can clear the hash visually, as Supabase has consumed it
-                if (window.location.hash) {
-                    history.replaceState(null, null, window.location.pathname);
-                }
+                if (window.location.hash) history.replaceState(null, null, window.location.pathname);
 
                 const amr = session.user?.amr || [];
                 const isPasswordLogin = amr.some(r => r.method === 'password');
@@ -1113,45 +682,30 @@
                 const hasSetup = meta.setup_complete === true;
 
                 if (isPasswordLogin) {
-                    // Valid Password Session -> ENTER
                     showDashboard(session.user);
                 } else {
-                    // Valid Session BUT via OTP/Magic Link
-                    console.log("OTP Session. Setup Complete?", hasSetup);
-
                     if (hasSetup) {
-                        // User HAS a password but used Magic Link (maybe by mistake or trying to bypass).
-                        // STRICT SECURITY: Do not allow dashboard. Force them to login with password.
                         alert("For security, please sign in using your Password.");
                         await client.auth.signOut();
                         document.getElementById('loading-overlay').style.display = 'none';
                         window.location.reload();
                     } else {
-                        // User DOES NOT have a password set (First time / Recovery).
-                        // Allow them to set it.
                         showSetPassword();
                     }
                 }
             } else {
-                // No Session -> Login Screen
                 document.getElementById('loading-overlay').style.display = 'none';
-                if (isRecovery) {
-                    document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
-                }
+                if (isRecovery) document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
             }
         });
 
         function showDashboard(user) {
             document.getElementById('app-auth').classList.add('hidden');
             document.getElementById('app-dashboard').classList.remove('hidden');
-            document.getElementById('loading-overlay').style.display = 'flex'; // Show loading while fetching data
+            document.getElementById('loading-overlay').style.display = 'flex';
 
-            // Update Profile Name if avail
-            if (user && user.email) {
-                document.querySelector('.p-name').textContent = user.email.split('@')[0];
-            }
+            if (user && user.email) document.querySelector('.p-name').textContent = user.email.split('@')[0];
 
-            // Anim
             anime({ targets: 'aside', translateX: [-200, 0], opacity: [0, 1], duration: 600, easing: 'easeOutExpo' });
             refreshData().then(() => {
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -1164,7 +718,6 @@
             document.getElementById('view-setpass').classList.remove('hidden');
         }
 
-        // AUTH HANDLERS
         async function handleLogout() {
             await client.auth.signOut();
             window.location.hash = '';
@@ -1176,87 +729,42 @@
             const d = Object.fromEntries(new FormData(e.target));
             const msg = document.getElementById('auth-msg');
             msg.innerText = '';
-
-            const { data, error } = await client.auth.signInWithPassword({
-                email: d.email,
-                password: d.password
-            });
-
-            if (error) {
-                msg.innerText = error.message;
-            } else {
-                showDashboard(data.user);
-            }
+            const { data, error } = await client.auth.signInWithPassword({ email: d.email, password: d.password });
+            if (error) msg.innerText = error.message; else showDashboard(data.user);
         }
 
-        // 1. Send OTP
         async function handleSendOtp(e) {
             e.preventDefault();
             const email = document.getElementById('otp-email').value;
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
-
-            btn.disabled = true; btn.innerText = "Sending...";
-            msg.innerText = "";
-
-            // Allow Supabase to handle the email sending. 
-            // Note: In production, you'd use a real SMTP or Supabase's built-in mailer.
-            // For 'magiclink' type, OTP is sent to email.
-            const { data, error } = await client.auth.signInWithOtp({
-                email: email,
-                options: {
-                    shouldCreateUser: false,
-                    emailRedirectTo: window.location.href // Ensure redirect back to THIS page
-                }
-            });
-
+            btn.disabled = true; btn.innerText = "Sending..."; msg.innerText = "";
+            const { data, error } = await client.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: window.location.href } });
             btn.disabled = false; btn.innerText = "Send OTP";
-
             if (error) {
-                msg.style.color = 'red';
-                msg.innerText = error.message;
+                msg.style.color = 'red'; msg.innerText = error.message;
             } else {
-                // SUCCESS: Show green message, STAY on form
                 msg.style.color = 'green';
-                msg.innerHTML = `
-                    <div style="font-weight:600"><i class="fa-solid fa-check-circle"></i> Link sent! Check your inbox.</div>
-                    <div style="font-size:0.85rem; margin-top:0.5rem; color:#1e293b">
-                        If you have a 6-digit code, <a href="#" onclick="document.getElementById('view-otp').classList.remove('hidden'); document.getElementById('form-magic').classList.add('hidden')" style="color:#0F766E; font-weight:600">enter it here</a>.
-                    </div>
-                `;
-
-                // Store email for verification step
+                msg.innerHTML = `<div style="font-weight:600"><i class="fa-solid fa-check-circle"></i> Link sent! Check your inbox.</div><div style="font-size:0.85rem; margin-top:0.5rem; color:#1e293b">If you have a 6-digit code, <a href="#" onclick="document.getElementById('view-otp').classList.remove('hidden'); document.getElementById('form-magic').classList.add('hidden')" style="color:#0F766E; font-weight:600">enter it here</a>.</div>`;
                 localStorage.setItem('pending_email', email);
             }
         }
 
-        // 2. Verify OTP
         async function handleVerifyOtp(e) {
             e.preventDefault();
             const email = localStorage.getItem('pending_email');
             const token = document.getElementById('otp-code').value;
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('auth-msg');
-
             if (!email) { msg.innerText = "Session expired. Please restart."; return; }
-
-            btn.disabled = true; btn.innerText = "Verifying...";
-            msg.innerText = "";
-
-            const { data: { session }, error } = await client.auth.verifyOtp({
-                email,
-                token,
-                type: 'magiclink' // or 'recovery' / 'signup' depending on flow. 'magiclink' verifies OTPLink
-            });
-
+            btn.disabled = true; btn.innerText = "Verifying..."; msg.innerText = "";
+            const { data: { session }, error } = await client.auth.verifyOtp({ email, token, type: 'magiclink' });
             btn.disabled = false; btn.innerText = "Verify & Set Password";
-
             if (error) {
                 msg.innerText = "Invalid Code: " + error.message;
             } else if (session) {
-                // Success! Redirect to Set Password
-                document.getElementById('view-signin').classList.add('hidden'); // Hide entire signin container content
-                document.getElementById('app-auth').querySelector('#view-otp').classList.add('hidden'); // Ensure OTP hidden
+                document.getElementById('view-signin').classList.add('hidden');
+                document.getElementById('app-auth').querySelector('#view-otp').classList.add('hidden');
                 showSetPassword();
             }
         }
@@ -1265,30 +773,14 @@
             e.preventDefault();
             const password = document.getElementById('new-password').value;
             const msg = document.getElementById('auth-msg');
-
-            const { error } = await client.auth.updateUser({
-                password: password,
-                data: { setup_complete: true } // Mark user as fully set up
-            });
-
+            const { error } = await client.auth.updateUser({ password: password, data: { setup_complete: true } });
             if (error) {
-                msg.style.color = 'red';
-                msg.innerText = error.message;
+                msg.style.color = 'red'; msg.innerText = error.message;
             } else {
-                // Success - Sign out so they can log in FRESH with password
-                await client.auth.signOut().catch(err => console.error("SignOut Failed", err));
-
-                // FORCE CLEAR LocalStorage to ensure no sticky session
-                localStorage.clear();
-                sessionStorage.clear();
-
+                await client.auth.signOut();
+                localStorage.clear(); sessionStorage.clear();
                 alert('Password updated successfully! Please sign in with your new password.');
-                window.location.hash = '';
-
-                // Clear any stored emails (already cleared by clear(), but being explicit)
-                localStorage.removeItem('pending_email');
-
-                // Switch to Sign In View
+                window.location.hash = ''; localStorage.removeItem('pending_email');
                 document.getElementById('view-setpass').classList.add('hidden');
                 document.getElementById('view-signin').classList.remove('hidden');
                 switchAuth('password');
@@ -1296,7 +788,7 @@
         }
 
         function switchAuth(mode) {
-            document.getElementById('auth-msg').innerText = ''; // Clear errors
+            document.getElementById('auth-msg').innerText = '';
             if (mode === 'password') {
                 document.getElementById('form-password').classList.remove('hidden');
                 document.getElementById('form-magic').classList.add('hidden');
@@ -1306,8 +798,6 @@
             }
         }
 
-
-        // DATA FETCHING
         async function refreshData() {
             try {
                 const results = await Promise.all([
@@ -1320,557 +810,136 @@
                     client.from('questions').select('*, Users(Name)'),
                     client.from('habit_streaks').select('*')
                 ]);
-
-                // Map results to State
-                DB.users = results[0].data || [];
-                DB.tasks = results[1].data || [];
-                DB.habits = results[2].data || [];
-                DB.t_assign = results[3].data || [];
-                DB.h_assign = results[4].data || [];
-                DB.cp = results[5].data || [];
-                DB.qs = results[6].data || [];
-                DB.streaks = results[7].data || [];
-
+                DB.users = results[0].data || []; DB.tasks = results[1].data || []; DB.habits = results[2].data || []; DB.t_assign = results[3].data || [];
+                DB.h_assign = results[4].data || []; DB.cp = results[5].data || []; DB.qs = results[6].data || []; DB.streaks = results[7].data || [];
                 renderAll();
-            } catch (e) {
-                alert("Connection Error: " + e.message);
-            }
+            } catch (e) { alert("Connection Error: " + e.message); }
         }
 
-        // RENDERING
         function renderAll() {
-            // 1. KPI
             document.getElementById('kpi-users').innerText = DB.users.length;
-
-            // Detailed Breakdown
             const cAdmin = DB.users.filter(u => u.role === 'admin').length;
             const cChap = DB.users.filter(u => u.role === 'chaperone').length;
             const cProt = DB.users.filter(u => u.role === 'protege').length;
-            document.getElementById('kpi-breakdown').innerHTML = `
-                <span style="color:#4F46E5"><b>${cAdmin}</b> Admins</span> • 
-                <span style="color:#10B981"><b>${cChap}</b> Chaperones</span><br>
-                <span style="color:#EC4899"><b>${cProt}</b> Protégés</span>
-            `;
-
-            document.getElementById('kpi-tasks').innerText = DB.tasks.filter(t => t.type === 'active').length || DB.tasks.length; // Simplified
+            document.getElementById('kpi-breakdown').innerHTML = `<span style="color:#4F46E5"><b>${cAdmin}</b> Admins</span> • <span style="color:#10B981"><b>${cChap}</b> Chaperones</span><br><span style="color:#EC4899"><b>${cProt}</b> Protégés</span>`;
+            document.getElementById('kpi-tasks').innerText = DB.tasks.filter(t => t.type === 'active').length || DB.tasks.length;
             document.getElementById('kpi-qa').innerText = DB.qs.filter(q => !q.archived).length;
             document.getElementById('kpi-streaks').innerText = DB.streaks.reduce((a, b) => a + (b.current_streak || 0), 0);
-
-            // 2. Charts
             renderCharts();
 
-            // 3. User Table
             const tbodyUsers = document.getElementById('table-users').querySelector('tbody');
-            tbodyUsers.innerHTML = DB.users.map(u => `
-                <tr>
-                    <td><div style="font-weight:600">${u.Name}</div></td>
-                    <td><span class="badge" style="background:${roleColor(u.role)}; color:white">${u.role || 'user'}</span></td>
-                    <td><code>${u.HFN_ID || '-'}</code></td>
-                    <td>${u.location || '-'}</td>
-                    <td>${u.email || u.phone || '-'}</td>
-                    <td>
-                        <button class="btn-secondary" style="color:red; padding:0.2rem 0.5rem; font-size:0.8rem" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbodyUsers.innerHTML = DB.users.map(u => `<tr><td><div style="font-weight:600">${u.Name}</div></td><td><span class="badge" style="background:${roleColor(u.role)}; color:white">${u.role || 'user'}</span></td><td><code>${u.HFN_ID || '-'}</code></td><td>${u.location || '-'}</td><td>${u.email || u.phone || '-'}</td><td><button class="btn-secondary" style="color:red; padding:0.2rem 0.5rem; font-size:0.8rem" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
 
-            // 4. Selects
             const prots = DB.users.filter(u => u.role === 'protege');
             const chaps = DB.users.filter(u => u.role === 'chaperone');
             const populate = (id, list) => document.getElementById(id).innerHTML = list.map(i => `<option value="${i.id}">${i.Name}</option>`).join('');
-
-            populate('sel-prot', prots); populate('sel-chap', chaps);
-            populate('sel-user-task', prots); populate('sel-user-habit', prots);
-
+            populate('sel-prot', prots); populate('sel-chap', chaps); populate('sel-user-task', prots); populate('sel-user-habit', prots);
             document.getElementById('sel-task').innerHTML = DB.tasks.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             document.getElementById('sel-habit').innerHTML = DB.habits.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
 
-            // 5. Assignments Tables
-            document.getElementById('table-cp').querySelector('tbody').innerHTML = DB.cp.map(x =>
-                `<tr><td>${x.chaperone?.Name}</td><td>${x.protege?.Name}</td><td><button class="btn-secondary" style="color:red; padding:0.2rem 0.5rem" onclick="unlink('${x.id}')">Unlink</button></td></tr>`
-            ).join('');
-
-            // 6. Task/Habit Tables (Updated for clarity)
-            document.getElementById('table-tasks-active').querySelector('tbody').innerHTML = DB.t_assign.map(x =>
-                `<tr>
-                    <td><div style="font-weight:600">${x.tasks?.name}</div></td>
-                    <td>${x.protege?.Name}</td>
-                    <td>${x.assigned_by_role || 'Admin'}</td>
-                    <td>${fmtDate(x.tasks?.deadline)}</td>
-                    <td><span class="badge" style="background:${x.status === 'completed' ? '#10B981' : '#F59E0B'}; color:white">${x.status}</span></td>
-                </tr>`
-            ).join('');
-            document.getElementById('table-habits-active').querySelector('tbody').innerHTML = DB.h_assign.map(x =>
-                `<tr><td>${x.habits?.name}</td><td>${x.protege?.Name}</td><td>${fmtDate(x.assigned_at)}</td></tr>`
-            ).join('');
-
-            // 7. Q&A
-            document.getElementById('table-qa').querySelector('tbody').innerHTML = DB.qs.map(q =>
-                `<tr><td>${q.title}</td><td>${q.Users?.Name}</td><td>${fmtDate(q.created_at)}</td>
-                <td>${q.archived ? '<span style="color:red">Archived</span>' : '<span style="color:green">Active</span>'}</td>
-                <td><button class="btn-secondary" onclick="toggleArchive('${q.id}', ${!q.archived})">${q.archived ? 'Restore' : 'Archive'}</button></td></tr>`
-            ).join('');
+            document.getElementById('table-cp').querySelector('tbody').innerHTML = DB.cp.map(x => `<tr><td>${x.chaperone?.Name}</td><td>${x.protege?.Name}</td><td><button class="btn-secondary" style="color:red; padding:0.2rem 0.5rem" onclick="unlink('${x.id}')">Unlink</button></td></tr>`).join('');
+            document.getElementById('table-tasks-active').querySelector('tbody').innerHTML = DB.t_assign.map(x => `<tr><td><div style="font-weight:600">${x.tasks?.name}</div></td><td>${x.protege?.Name}</td><td>${x.assigned_by_role || 'Admin'}</td><td>${fmtDate(x.tasks?.deadline)}</td><td><span class="badge" style="background:${x.status === 'completed' ? '#10B981' : '#F59E0B'}; color:white">${x.status}</span></td></tr>`).join('');
+            document.getElementById('table-habits-active').querySelector('tbody').innerHTML = DB.h_assign.map(x => `<tr><td>${x.habits?.name}</td><td>${x.protege?.Name}</td><td>${fmtDate(x.assigned_at)}</td></tr>`).join('');
+            document.getElementById('table-qa').querySelector('tbody').innerHTML = DB.qs.map(q => `<tr><td>${q.title}</td><td>${q.Users?.Name}</td><td>${fmtDate(q.created_at)}</td><td>${q.archived ? '<span style="color:red">Archived</span>' : '<span style="color:green">Active</span>'}</td><td><button class="btn-secondary" onclick="toggleArchive('${q.id}', ${!q.archived})">${q.archived ? 'Restore' : 'Archive'}</button></td></tr>`).join('');
         }
 
-        // Chart Instances Container
         let chartInstances = {};
-
         function renderCharts() {
-            // 1. Destroy all existing to prevent canvas reuse errors
-            Object.values(chartInstances).forEach(c => c && c.destroy());
-            chartInstances = {};
+            Object.values(chartInstances).forEach(c => c && c.destroy()); chartInstances = {};
+            const Colors = { indigo: '#4F46E5', emerald: '#10B981', amber: '#F59E0B', rose: '#E11D48', violet: '#7C3AED', blue: '#2563EB', slate: '#64748B', white: '#ffffff' };
+            const transparent = (hex) => hex + '88';
 
-            // HELPER: Colors
-            const Colors = {
-                indigo: '#4F46E5', emerald: '#10B981', amber: '#F59E0B', rose: '#E11D48',
-                violet: '#7C3AED', blue: '#2563EB', slate: '#64748B', white: '#ffffff'
-            };
-            const transparent = (hex) => hex + '88'; // add alpha
+            const roleCounts = { Admin: 0, Chaperone: 0, Protege: 0 }; DB.users.forEach(u => roleCounts[capitalize(u.role || 'protege')]++);
+            chartInstances.c1 = new Chart(document.getElementById('c1_roles'), { type: 'polarArea', data: { labels: Object.keys(roleCounts), datasets: [{ data: Object.values(roleCounts), backgroundColor: [transparent(Colors.indigo), transparent(Colors.emerald), transparent(Colors.rose)], borderColor: [Colors.indigo, Colors.emerald, Colors.rose], borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: '#f1f5f9' }, ticks: { display: false } } } } });
 
-            // Chart 1: ROLE DISTRIBUTION (Polar Area)
-            const roleCounts = { Admin: 0, Chaperone: 0, Protege: 0 };
-            DB.users.forEach(u => roleCounts[capitalize(u.role || 'protege')]++);
-            chartInstances.c1 = new Chart(document.getElementById('c1_roles'), {
-                type: 'polarArea',
-                data: {
-                    labels: Object.keys(roleCounts),
-                    datasets: [{
-                        data: Object.values(roleCounts),
-                        backgroundColor: [transparent(Colors.indigo), transparent(Colors.emerald), transparent(Colors.rose)],
-                        borderColor: [Colors.indigo, Colors.emerald, Colors.rose], borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: '#f1f5f9' }, ticks: { display: false } } } }
-            });
+            const activity = {}; [...DB.tasks, ...DB.qs].forEach(x => { const d = new Date(x.created_at || Date.now()).toLocaleDateString('en-US', { weekday: 'short' }); activity[d] = (activity[d] || 0) + 1; });
+            const dLabs = Object.keys(activity).slice(-7); const dVals = Object.values(activity).slice(-7);
+            chartInstances.c2 = new Chart(document.getElementById('c2_activity'), { type: 'line', data: { labels: dLabs.length ? dLabs : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'New Items', data: dVals.length ? dVals : [2, 4, 6, 3, 7, 5, 8], borderColor: Colors.indigo, backgroundColor: (ctx) => { const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 250); g.addColorStop(0, Colors.indigo + '66'); g.addColorStop(1, Colors.indigo + '00'); return g; }, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5] }, beginAtZero: true } }, plugins: { legend: { display: false } } } });
 
-            // Chart 2: ACTIVITY PULSE (Line - 7 Days)
-            const activity = {};
-            [...DB.tasks, ...DB.qs].forEach(x => {
-                const d = new Date(x.created_at || Date.now()).toLocaleDateString('en-US', { weekday: 'short' });
-                activity[d] = (activity[d] || 0) + 1;
-            });
-            const dLabs = Object.keys(activity).slice(-7);
-            const dVals = Object.values(activity).slice(-7);
-            chartInstances.c2 = new Chart(document.getElementById('c2_activity'), {
-                type: 'line',
-                data: {
-                    labels: dLabs.length ? dLabs : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'New Items', data: dVals.length ? dVals : [2, 4, 6, 3, 7, 5, 8],
-                        borderColor: Colors.indigo, backgroundColor: (ctx) => {
-                            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 250);
-                            g.addColorStop(0, Colors.indigo + '66'); g.addColorStop(1, Colors.indigo + '00'); return g;
-                        }, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { borderDash: [5, 5] }, beginAtZero: true } }, plugins: { legend: { display: false } } }
-            });
-
-            // Chart 3: PERFORMANCE MATRIX (Scatter)
-            const scatterData = DB.users.filter(u => u.role === 'protege').map(u => {
-                const tasksDone = DB.t_assign.filter(t => t.protege_id === u.id && t.status === 'completed').length;
-                const streaks = DB.streaks.find(s => s.protege_id === u.id);
-                return { x: tasksDone, y: streaks ? streaks.current_streak : 0, r: 6, user: u.Name };
-            });
+            const scatterData = DB.users.filter(u => u.role === 'protege').map(u => { const tasksDone = DB.t_assign.filter(t => t.protege_id === u.id && t.status === 'completed').length; const streaks = DB.streaks.find(s => s.protege_id === u.id); return { x: tasksDone, y: streaks ? streaks.current_streak : 0, r: 6, user: u.Name }; });
             if (!scatterData.length) scatterData.push({ x: 0, y: 0, r: 0 });
-            chartInstances.c3 = new Chart(document.getElementById('c3_scatter'), {
-                type: 'bubble',
-                data: { datasets: [{ label: 'Students', data: scatterData, backgroundColor: Colors.violet + '99', borderColor: Colors.violet }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.user}: ${c.raw.x} Tasks, ${c.raw.y} Days` } } }, scales: { x: { title: { display: true, text: 'Tasks Done' } }, y: { title: { display: true, text: 'Streak Days' } } } }
-            });
+            chartInstances.c3 = new Chart(document.getElementById('c3_scatter'), { type: 'bubble', data: { datasets: [{ label: 'Students', data: scatterData, backgroundColor: Colors.violet + '99', borderColor: Colors.violet }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.raw.user}: ${c.raw.x} Tasks, ${c.raw.y} Days` } } }, scales: { x: { title: { display: true, text: 'Tasks Done' } }, y: { title: { display: true, text: 'Streak Days' } } } } });
 
-            // Chart 4: GLOBAL TASK STATUS (Doughnut)
-            const tStats = { Completed: 0, Pending: 0, Overdue: 0 };
-            const now = new Date();
-            DB.t_assign.forEach(t => {
-                if (t.status === 'completed') tStats.Completed++;
-                else if (new Date(t.tasks?.deadline) < now) tStats.Overdue++;
-                else tStats.Pending++;
-            });
-            chartInstances.c4 = new Chart(document.getElementById('c4_taskstatus'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(tStats),
-                    datasets: [{ data: Object.values(tStats), backgroundColor: [Colors.emerald, Colors.slate, Colors.rose], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } } }
-            });
+            const tStats = { Completed: 0, Pending: 0, Overdue: 0 }; const now = new Date(); DB.t_assign.forEach(t => { if (t.status === 'completed') tStats.Completed++; else if (new Date(t.tasks?.deadline) < now) tStats.Overdue++; else tStats.Pending++; });
+            chartInstances.c4 = new Chart(document.getElementById('c4_taskstatus'), { type: 'doughnut', data: { labels: Object.keys(tStats), datasets: [{ data: Object.values(tStats), backgroundColor: [Colors.emerald, Colors.slate, Colors.rose], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } } } });
 
-            // Chart 5: TASK VELOCITY (Stacked Bar)
-            const userAct = {};
-            DB.t_assign.forEach(t => {
-                const n = t.protege?.Name || 'Unknown';
-                if (!userAct[n]) userAct[n] = { active: 0, done: 0 };
-                t.status === 'completed' ? userAct[n].done++ : userAct[n].active++;
-            });
+            const userAct = {}; DB.t_assign.forEach(t => { const n = t.protege?.Name || 'Unknown'; if (!userAct[n]) userAct[n] = { active: 0, done: 0 }; t.status === 'completed' ? userAct[n].done++ : userAct[n].active++; });
             const topUsers = Object.keys(userAct).slice(0, 7);
-            chartInstances.c5 = new Chart(document.getElementById('c5_velocity'), {
-                type: 'bar',
-                data: {
-                    labels: topUsers.length ? topUsers : ['Empty'],
-                    datasets: [
-                        { label: 'Active', data: topUsers.map(u => userAct[u].active), backgroundColor: Colors.amber, stack: '0' },
-                        { label: 'Done', data: topUsers.map(u => userAct[u].done), backgroundColor: Colors.emerald, stack: '0' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { display: false } } }
-            });
+            chartInstances.c5 = new Chart(document.getElementById('c5_velocity'), { type: 'bar', data: { labels: topUsers.length ? topUsers : ['Empty'], datasets: [{ label: 'Active', data: topUsers.map(u => userAct[u].active), backgroundColor: Colors.amber, stack: '0' }, { label: 'Done', data: topUsers.map(u => userAct[u].done), backgroundColor: Colors.emerald, stack: '0' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { display: false } } } });
 
-            // Chart 6: CHAPERONE LOAD (Horizontal Bar)
-            const chapLoad = {};
-            DB.cp.forEach(r => {
-                const n = r.chaperone?.Name || 'Unassigned';
-                chapLoad[n] = (chapLoad[n] || 0) + 1;
-            });
+            const chapLoad = {}; DB.cp.forEach(r => { const n = r.chaperone?.Name || 'Unassigned'; chapLoad[n] = (chapLoad[n] || 0) + 1; });
             const cNames = Object.keys(chapLoad);
-            chartInstances.c6 = new Chart(document.getElementById('c6_chaperone'), {
-                type: 'bar', // indexAxis: 'y' makes it horizontal
-                data: {
-                    labels: cNames.length ? cNames : ['None'],
-                    datasets: [{ label: 'Protégés', data: Object.values(chapLoad), backgroundColor: Colors.blue, borderRadius: 4, barThickness: 20 }]
-                },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { display: false } } }, plugins: { legend: { display: false } } }
-            });
+            chartInstances.c6 = new Chart(document.getElementById('c6_chaperone'), { type: 'bar', data: { labels: cNames.length ? cNames : ['None'], datasets: [{ label: 'Protégés', data: Object.values(chapLoad), backgroundColor: Colors.blue, borderRadius: 4, barThickness: 20 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { display: false } } }, plugins: { legend: { display: false } } } });
 
-            // Chart 7: HABIT STREAKS (Bar)
             const topStreaks = DB.streaks.sort((a, b) => b.current_streak - a.current_streak).slice(0, 5);
-            chartInstances.c7 = new Chart(document.getElementById('c7_habits'), {
-                type: 'bar',
-                data: {
-                    labels: topStreaks.length ? topStreaks.map(s => {
-                        const u = DB.users.find(x => x.id === s.protege_id);
-                        return u ? u.Name : 'User';
-                    }) : ['No Data'],
-                    datasets: [{ label: 'Days', data: topStreaks.map(s => s.current_streak), backgroundColor: Colors.rose, borderRadius: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-            });
+            chartInstances.c7 = new Chart(document.getElementById('c7_habits'), { type: 'bar', data: { labels: topStreaks.length ? topStreaks.map(s => { const u = DB.users.find(x => x.id === s.protege_id); return u ? u.Name : 'User'; }) : ['No Data'], datasets: [{ label: 'Days', data: topStreaks.map(s => s.current_streak), backgroundColor: Colors.rose, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
 
-            // Chart 8: USER LOCATIONS (Bar)
-            const locs = {};
-            DB.users.forEach(u => {
-                const l = u.location ? u.location.trim() : 'Unknown';
-                locs[l] = (locs[l] || 0) + 1;
-            });
-            chartInstances.c8 = new Chart(document.getElementById('c8_location'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(locs).slice(0, 6),
-                    datasets: [{ label: 'Users', data: Object.values(locs).slice(0, 6), backgroundColor: Colors.slate }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+            const locs = {}; DB.users.forEach(u => { const l = u.location ? u.location.trim() : 'Unknown'; locs[l] = (locs[l] || 0) + 1; });
+            chartInstances.c8 = new Chart(document.getElementById('c8_location'), { type: 'bar', data: { labels: Object.keys(locs).slice(0, 6), datasets: [{ label: 'Users', data: Object.values(locs).slice(0, 6), backgroundColor: Colors.slate }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 
-            // Chart 9: DEMOGRAPHICS (Pie) - using "Gender" or "Age Group" if available. For now key on Gender.
-            const gender = { Male: 0, Female: 0, Other: 0 };
-            DB.users.forEach(u => {
-                const g = u.Gender ? u.Gender : 'Other'; // Case sensitive check needed in real app
-                if (gender[g] !== undefined) gender[g]++; else gender.Other++;
-            });
-            chartInstances.c9 = new Chart(document.getElementById('c9_gender'), {
-                type: 'pie',
-                data: {
-                    labels: ['Male', 'Female', 'Other/Unset'],
-                    datasets: [{ data: Object.values(gender), backgroundColor: [Colors.blue, Colors.rose, Colors.slate] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-            });
+            const gender = { Male: 0, Female: 0, Other: 0 }; DB.users.forEach(u => { const g = u.Gender ? u.Gender : 'Other'; if (gender[g] !== undefined) gender[g]++; else gender.Other++; });
+            chartInstances.c9 = new Chart(document.getElementById('c9_gender'), { type: 'pie', data: { labels: ['Male', 'Female', 'Other/Unset'], datasets: [{ data: Object.values(gender), backgroundColor: [Colors.blue, Colors.rose, Colors.slate] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } } });
 
-            // Chart 10: Q&A MODERATION (Doughnut)
-            const qaStats = { Active: 0, Archived: 0 };
-            DB.qs.forEach(q => q.archived ? qaStats.Archived++ : qaStats.Active++);
-            chartInstances.c10 = new Chart(document.getElementById('c10_qa'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Active', 'Archived'],
-                    datasets: [{ data: [qaStats.Active, qaStats.Archived], backgroundColor: [Colors.emerald, Colors.slate], cutout: '60%' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+            const qaStats = { Active: 0, Archived: 0 }; DB.qs.forEach(q => q.archived ? qaStats.Archived++ : qaStats.Active++);
+            chartInstances.c10 = new Chart(document.getElementById('c10_qa'), { type: 'doughnut', data: { labels: ['Active', 'Archived'], datasets: [{ data: [qaStats.Active, qaStats.Archived], backgroundColor: [Colors.emerald, Colors.slate], cutout: '60%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
         }
 
-        // ACTIONS
-        async function handleCreateUser(e) {
-            e.preventDefault();
-            const d = Object.fromEntries(new FormData(e.target));
-            if (d.Age) d.Age = +d.Age;
-
-            // 1. Create Auth User (Required for Foreign Key)
-            // We use a default password since this is an admin dashboard creating users.
-            const { data: authData, error: authError } = await client.auth.signUp({
-                email: d.email,
-                password: 'TempPassword123!'
-            });
-
-            if (authError) {
-                console.error("Auth Error:", authError);
-                return alert("Failed to create Auth User: " + authError.message);
-            }
-
-            if (authData.user) {
-                d.id = authData.user.id; // Link to Auth ID
-                await safeInsert('Users', d);
-            }
-        }
-
+        async function handleCreateUser(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (d.Age) d.Age = +d.Age; const { data: authData, error: authError } = await client.auth.signUp({ email: d.email, password: 'TempPassword123!' }); if (authError) { console.error("Auth Error:", authError); return alert("Failed to create Auth User: " + authError.message); } if (authData.user) { d.id = authData.user.id; await safeInsert('Users', d); } }
         async function handleBulkImport() {
-            const fileInput = document.getElementById('csv-file');
-            const logDiv = document.getElementById('import-log');
-            if (!fileInput.files.length) return alert("Please select a file");
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            logDiv.innerHTML = "<div>Reading file...</div>";
-
+            const fileInput = document.getElementById('csv-file'); const logDiv = document.getElementById('import-log'); if (!fileInput.files.length) return alert("Please select a file");
+            const file = fileInput.files[0]; const reader = new FileReader(); logDiv.innerHTML = "<div>Reading file...</div>";
             reader.onload = async (e) => {
-                const text = e.target.result;
-                const rows = text.split('\n').map(r => r.trim()).filter(r => r);
-                // Assume Header: Name,email,role
-                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
-
-                logDiv.innerHTML += `<div>Found ${rows.length - 1} rows. Starting import...</div>`;
-
+                const text = e.target.result; const rows = text.split('\n').map(r => r.trim()).filter(r => r); const headers = rows[0].split(',').map(h => h.trim().toLowerCase()); logDiv.innerHTML += `<div>Found ${rows.length - 1} rows. Starting import...</div>`;
                 for (let i = 1; i < rows.length; i++) {
-                    const cols = rows[i].split(',').map(c => c.trim());
-                    if (cols.length < 2) continue; // Skip bad rows
-
-                    // Basic mapping helper
-                    const getCol = (h) => {
-                        const idx = headers.findIndex(x => x.includes(h));
-                        return idx !== -1 ? cols[idx] : null;
-                    };
-
-                    const userData = {
-                        Name: getCol('name') || 'Unknown',
-                        email: getCol('email'),
-                        role: getCol('role') || 'protege',
-                        // Defaults
-                        Age: 25,
-                        created_at: new Date().toISOString()
-                    };
-
-                    if (!userData.email) {
-                        logDiv.innerHTML += `<div style="color:red">Row ${i}: Missing email, skipping.</div>`;
-                        continue;
-                    }
-
-                    // STUB: Actual Bulk Create via Supabase Auth requires Service Role. 
-                    // WE will mock the creation or try to insert into DB directly if using triggers, 
-                    // but for now we'll do the same flow as single add: SignUp -> Insert
-
+                    const cols = rows[i].split(',').map(c => c.trim()); if (cols.length < 2) continue;
+                    const getCol = (h) => { const idx = headers.findIndex(x => x.includes(h)); return idx !== -1 ? cols[idx] : null; };
+                    const userData = { Name: getCol('name') || 'Unknown', email: getCol('email'), role: getCol('role') || 'protege', Age: 25, created_at: new Date().toISOString() };
+                    if (!userData.email) { logDiv.innerHTML += `<div style="color:red">Row ${i}: Missing email, skipping.</div>`; continue; }
                     logDiv.innerHTML += `<div>Creating ${userData.email}...</div>`;
-
-                    try {
-                        // NOTE: client.auth.signUp logs in the new user immediately in some configs, 
-                        // which might sign OUT the admin. 
-                        // For true Bulk Admin functionality, use a separate Edge Function.
-                        // HERE WE will just Log it for safety as per plan constraint.
-                        console.log("Mock Creating: ", userData);
-
-                        // We will simulate DB insert for visual confirmation if it were real
-                        // await safeInsert('Users', { ...userData, id: crypto.randomUUID() });
-
-                        logDiv.innerHTML += `<div style="color:green">Success: ${userData.email} (Mock)</div>`;
-
-                    } catch (err) {
-                        logDiv.innerHTML += `<div style="color:red">Failed: ${err.message}</div>`;
-                    }
-
-                    // Simple delay to not hang UI
+                    try { console.log("Mock Creating: ", userData); logDiv.innerHTML += `<div style="color:green">Success: ${userData.email} (Mock)</div>`; } catch (err) { logDiv.innerHTML += `<div style="color:red">Failed: ${err.message}</div>`; }
                     await new Promise(r => setTimeout(r, 100));
                 }
-                logDiv.innerHTML += "<div><b>Done!</b></div>";
-                await refreshData();
+                logDiv.innerHTML += "<div><b>Done!</b></div>"; await refreshData();
             };
             reader.readAsText(file);
         }
-
-        async function deleteUser(id) {
-            if (!confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
-
-            // 1. Delete from DB (Foreign Keys might cascade or error)
-            const { error } = await client.from('Users').delete().eq('id', id);
-
-            if (error) {
-                alert("Delete Failed: " + error.message);
-            } else {
-                alert("User deleted from Database. (Auth user remains unless deleted via Admin API)");
-                await refreshData();
-            }
-        }
-
+        async function deleteUser(id) { if (!confirm("Are you sure you want to delete this user?")) return; const { error } = await client.from('Users').delete().eq('id', id); if (error) alert("Delete Failed: " + error.message); else await refreshData(); }
         async function handleCreateTask(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (DB.users[0]) d.created_by = DB.users[0].id; await safeInsert('tasks', d); }
         async function handleCreateHabit(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); await safeInsert('habits', d); }
-
-        async function handleLinkCP() {
-            const chaperone_id = val('sel-chap');
-            const protege_id = val('sel-prot');
-
-            if (!chaperone_id || !protege_id) return alert("Please select both a Chaperone and a Protégé.");
-
-            const { error } = await client.from('chaperone_protege').insert([{ chaperone_id, protege_id }]);
-
-            if (error) {
-                console.error("Supabase Error:", error);
-                alert("Assignment Failed:\n" + error.message + "\n(Code: " + error.code + ")");
-                return;
-            }
-
-            alert("Success: Profile Linked!");
-            await refreshData();
-        }
-
+        async function handleLinkCP() { const chaperone_id = val('sel-chap'); const protege_id = val('sel-prot'); if (!chaperone_id || !protege_id) return alert("Please select both."); const { error } = await client.from('chaperone_protege').insert([{ chaperone_id, protege_id }]); if (error) alert("Assignment Failed: " + error.message); else await refreshData(); }
         async function handleAssignTask() { const task_id = val('sel-task'), protege_id = val('sel-user-task'); await safeInsert('task_assignments', { task_id, protege_id, assigned_by_role: 'admin' }); }
         async function handleAssignHabit() { const habit_id = val('sel-habit'), protege_id = val('sel-user-habit'); await safeInsert('habit_assignments', { habit_id, protege_id }); }
         async function toggleArchive(id, status) { await client.from('questions').update({ archived: status }).eq('id', id); refreshData(); }
+        async function unlink(id) { if (!confirm('Unlink this pair?')) return; const { error } = await client.from('chaperone_protege').delete().eq('id', id); if (error) alert("Failed: " + error.message); else await refreshData(); }
+        async function safeInsert(table, data) { const { error } = await client.from(table).insert([data]); if (error) alert("Action Failed: " + error.message); else await refreshData(); }
 
-        async function unlink(id) {
-            if (!confirm('Are you sure you want to unlink this pair?')) return;
-            const { error } = await client.from('chaperone_protege').delete().eq('id', id);
-            if (error) { alert("Unlink Failed: " + error.message); } else { await refreshData(); }
-        }
-
-        async function safeInsert(table, data) {
-            console.log("Inserting into", table, data);
-            const { error } = await client.from(table).insert([data]);
-            if (error) {
-                console.error("Insert Error:", error);
-                alert("Action Failed: " + error.message);
-            } else {
-                alert("Action Successful!");
-                await refreshData();
-            }
-        }
-
-        // REPORTS
         function generateReport() {
-            const minCons = +val('rep-cons');
-            const qualify = [];
-
-            // Logic: For each protege
+            const minCons = +val('rep-cons'); const qualify = [];
             const prots = DB.users.filter(u => u.role === 'protege');
             prots.forEach(p => {
-                const myTasks = DB.t_assign.filter(t => t.protege_id === p.id);
-                const allDone = myTasks.length > 0 && myTasks.every(t => t.status === 'completed');
-
-                // 2. Habit Consistency (Mock Logic for demo using streaks)
-                const myStreak = DB.streaks.find(s => s.protege_id === p.id);
-                const cons = myStreak ? Math.min(100, (myStreak.current_streak / 30) * 100) : 0; // Demo calc
-
-                if (cons >= minCons) { // Add Task condition '&& allDone' in prod, removed for demo visibility
-                    qualify.push({ name: p.Name, tasks_ok: allDone, cons: cons.toFixed(1) });
-                }
+                const myTasks = DB.t_assign.filter(t => t.protege_id === p.id); const allDone = myTasks.length > 0 && myTasks.every(t => t.status === 'completed');
+                const myStreak = DB.streaks.find(s => s.protege_id === p.id); const cons = myStreak ? Math.min(100, (myStreak.current_streak / 30) * 100) : 0;
+                if (cons >= minCons) qualify.push({ name: p.Name, tasks_ok: allDone, cons: cons.toFixed(1) });
             });
-
-            REPORT_DATA = qualify;
-            document.getElementById('report-results').classList.remove('hidden');
-            document.getElementById('table-report').querySelector('tbody').innerHTML = qualify.map(q =>
-                `<tr><td>${q.name}</td><td>${q.tasks_ok ? '<span style="color:green">All Done</span>' : 'Pending'}</td><td>${q.cons}%</td><td style="font-weight:bold; color:var(--primary)">QUALIFIED</td></tr>`
-            ).join('');
-
+            REPORT_DATA = qualify; document.getElementById('report-results').classList.remove('hidden');
+            document.getElementById('table-report').querySelector('tbody').innerHTML = qualify.map(q => `<tr><td>${q.name}</td><td>${q.tasks_ok ? '<span style="color:green">All Done</span>' : 'Pending'}</td><td>${q.cons}%</td><td style="font-weight:bold; color:var(--primary)">QUALIFIED</td></tr>`).join('');
             if (qualify.length === 0) document.getElementById('table-report').querySelector('tbody').innerHTML = '<tr><td colspan="4">No users match criteria</td></tr>';
         }
-
-        function exportReport() {
-            if (!REPORT_DATA.length) return alert('No data');
-            let m = "Name,TaskStatus,Consistency\n" + REPORT_DATA.map(r => `${r.name},${r.tasks_ok},${r.cons}`).join('\n');
-            const blob = new Blob([m], { type: 'text/csv' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Qualified_Proteges.csv'; a.click();
-        }
-
-        // UTILS
-        function openLogout() {
-            const m = document.getElementById('logout-menu');
-            m.classList.add('active');
-            document.querySelector('.profile-widget .fa-chevron-down').style.transform = 'rotate(180deg)';
-        }
-        function closeLogout() {
-            const m = document.getElementById('logout-menu');
-            m.classList.remove('active');
-            document.querySelector('.profile-widget .fa-chevron-down').style.transform = 'rotate(0deg)';
-        }
-        function toggleLogout() {
-            const m = document.getElementById('logout-menu');
-            if (m.classList.contains('active')) closeLogout(); else openLogout();
-        }
-
-        function exportData(key) {
-            const data = DB[key];
-            if (!data || !data.length) return alert("No Data to export for " + key);
-
-            // Flatten generic objects if needed or just dump keys
-            // For simple arrays (users, tasks) it works. For joined (t_assign), we flatten slightly
-            const keys = Object.keys(data[0]);
-            const header = keys.join(',');
-
-            // Basic CSV generation
-            const rows = data.map(row => {
-                return keys.map(k => {
-                    let info = row[k];
-                    if (typeof info === 'object' && info !== null) return ''; // Skip nested objs for simple export
-                    return `"${info}"`;
-                }).join(',');
-            });
-
-            const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].join('\n');
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", key + "_export.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        function exportReport() { if (!REPORT_DATA.length) return alert('No data'); let m = "Name,TaskStatus,Consistency\n" + REPORT_DATA.map(r => `${r.name},${r.tasks_ok},${r.cons}`).join('\n'); const blob = new Blob([m], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Qualified_Proteges.csv'; a.click(); }
+        function exportData(key) { const data = DB[key]; if (!data || !data.length) return alert("No Data for " + key); const keys = Object.keys(data[0]); const header = keys.join(','); const rows = data.map(row => keys.map(k => { let info = row[k]; if (typeof info === 'object' && info !== null) return ''; return `"${info}"`; }).join(',')); const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].join('\n'); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", key + "_export.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
         function router(v) {
-            // 1. Hide all views
-            document.querySelectorAll('.view').forEach(e => {
-                e.classList.add('hidden');
-                e.style.opacity = 0; // Reset for anim
-            });
-
-            // 2. Show target
-            const target = document.getElementById('view-' + v);
-            target.classList.remove('hidden');
-
-            // 3. Sidebar Active State
-            document.querySelectorAll('#sidebar-nav .nav-item').forEach(e => {
-                const isActive = e.dataset.target === v;
-                e.classList.toggle('active', isActive);
-                if (isActive) anime({ targets: e, scale: [0.95, 1], duration: 400 });
-            });
-
-            // 4. Premium Entry Animation
-            anime({
-                targets: target,
-                opacity: [0, 1],
-                translateY: [15, 0],
-                duration: 600,
-                easing: 'easeOutQuart'
-            });
-
-            anime({
-                targets: target.querySelectorAll('.card, .kpi-card'),
-                opacity: [0, 1],
-                translateY: [20, 0],
-                delay: anime.stagger(60),
-                duration: 800,
-                easing: 'easeOutExpo'
-            });
+            document.querySelectorAll('.view').forEach(e => { e.classList.add('hidden'); e.style.opacity = 0; });
+            const target = document.getElementById('view-' + v); target.classList.remove('hidden');
+            document.querySelectorAll('#sidebar-nav .nav-item').forEach(e => { const isActive = e.dataset.target === v; e.classList.toggle('active', isActive); if (isActive) anime({ targets: e, scale: [0.95, 1], duration: 400 }); });
+            anime({ targets: target, opacity: [0, 1], translateY: [15, 0], duration: 600, easing: 'easeOutQuart' });
+            anime({ targets: target.querySelectorAll('.card, .kpi-card'), opacity: [0, 1], translateY: [20, 0], delay: anime.stagger(60), duration: 800, easing: 'easeOutExpo' });
         }
-
-        function toggleCurr(mode) {
-            document.getElementById('section-task').classList.toggle('hidden', mode !== 'task');
-            document.getElementById('section-habit').classList.toggle('hidden', mode !== 'habit');
-            document.getElementById('btn-task').className = mode === 'task' ? 'btn-primary' : 'btn-secondary';
-            document.getElementById('btn-habit').className = mode === 'habit' ? 'btn-primary' : 'btn-secondary';
-        }
+        function toggleCurr(mode) { document.getElementById('section-task').classList.toggle('hidden', mode !== 'task'); document.getElementById('section-habit').classList.toggle('hidden', mode !== 'habit'); document.getElementById('btn-task').className = mode === 'task' ? 'btn-primary' : 'btn-secondary'; document.getElementById('btn-habit').className = mode === 'habit' ? 'btn-primary' : 'btn-secondary'; }
         function val(id) { return document.getElementById(id).value; }
         function roleColor(r) { return { 'admin': '#4F46E5', 'chaperone': '#10B981', 'protege': '#EC4899' }[r] || '#6B7280'; }
         function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '-'; }
         function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
     </script>
 </body>
 
