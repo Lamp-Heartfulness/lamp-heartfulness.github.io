@@ -1101,26 +1101,30 @@
             // Initialize Session
             const { data: { session } } = await client.auth.getSession();
 
-            if (isRecovery) {
-                // User clicked Magic Link (Recovery Mode)
-                console.log("Recovery Mode Detected");
-                showSetPassword();
-            } else if (session) {
-                // SECURITY CHECK: 
-                // If user logged in via Magic Link/OTP, FORCE them to Set Password.
-                // Dashboard access is ONLY allowed via 'password' login.
+            // LOGIC: Only show UI if we have a valid session.
+            // If the link is invalid/expired, 'session' will be null -> fallback to Login.
+            if (session) {
+                // Check Authentication Method
                 const amr = session.user?.amr || [];
                 const isPasswordLogin = amr.some(r => r.method === 'password');
 
+                // If user authenticated via Password -> Show Dashboard
+                // If user authenticated via OTP/Magic Link -> Force Set Password
                 if (isPasswordLogin) {
                     showDashboard(session.user);
                 } else {
-                    console.log("OTP Session detected - Enforcing Password Set");
+                    console.log("OTP/Recovery Session detected - Enforcing Password Set");
                     showSetPassword();
                 }
             } else {
-                // No Session -> Login Screen
+                // No Session (or Expired Token) -> Login Screen
+                // Even if hash contained 'type=recovery', if session is null, the token is dead.
                 document.getElementById('loading-overlay').style.display = 'none';
+
+                if (isRecovery) {
+                    // Optional: Show error that link expired
+                    document.getElementById('auth-msg').innerText = "Link expired or invalid. Please request a new one.";
+                }
             }
         });
 
@@ -1187,7 +1191,10 @@
             // For 'magiclink' type, OTP is sent to email.
             const { data, error } = await client.auth.signInWithOtp({
                 email: email,
-                options: { shouldCreateUser: false } // Only existing admins
+                options: {
+                    shouldCreateUser: false,
+                    emailRedirectTo: window.location.href // Ensure redirect back to THIS page
+                }
             });
 
             btn.disabled = false; btn.innerText = "Send OTP";
