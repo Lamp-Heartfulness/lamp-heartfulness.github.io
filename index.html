@@ -101,6 +101,14 @@
             z-index: 10;
         }
 
+        /* DASHBOARD APP CONTAINER */
+        #app-dashboard {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
         /* Profile Widget */
         .profile-widget {
             display: flex;
@@ -111,44 +119,19 @@
             border-radius: 8px;
             margin-bottom: 2rem;
             transition: 0.2s;
+            position: relative;
+            /* For popup positioning */
         }
 
         .profile-widget:hover {
             background: var(--bg-page);
         }
 
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .p-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .p-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .p-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
         .logout-pop {
             position: absolute;
-            top: 70px;
-            left: 20px;
+            top: 100%;
+            /* Below widget */
+            left: 0;
             width: 220px;
             background: white;
             border: 1px solid var(--border);
@@ -157,6 +140,11 @@
             padding: 0.5rem;
             display: none;
             z-index: 50;
+        }
+
+        /* Show popup on hover of widget */
+        .profile-widget:hover .logout-pop {
+            display: block;
         }
 
         .logout-pop.active {
@@ -575,13 +563,16 @@
 
                 <!-- VERIFY OTP VIEW (Hidden) -->
                 <div id="view-otp" class="hidden">
-                    <h3>Enter OTP</h3>
-                    <p>Check your email for the code</p>
+                    <h3>Check your Email</h3>
+                    <p style="font-size:0.9rem; color:#666">
+                        We sent a code to your email.<br>
+                        <strong>Enter it below OR click the link in the email.</strong>
+                    </p>
                     <form onsubmit="handleVerifyOtp(event)">
                         <div class="input-group" style="text-align:left">
-                            <label>6-digit Code</label>
-                            <input type="text" id="otp-code" class="form-control" required placeholder="123456"
-                                maxlength="6" style="letter-spacing:4px; font-size:1.2rem; text-align:center">
+                            <label>6-digit Code (if available)</label>
+                            <input type="text" id="otp-code" class="form-control" placeholder="123456" maxlength="6"
+                                style="letter-spacing:4px; font-size:1.2rem; text-align:center">
                         </div>
                         <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Verify & Set
                             Password</button>
@@ -656,8 +647,9 @@
                         class="fa-solid fa-file-export"></i> Data Export</div>
             </nav>
             <div style="flex:1"></div>
-            <div class="nav-item" style="color:#ef4444" onclick="handleLogout()"><i class="fa-solid fa-power-off"></i>
-                Logout</div>
+            <!-- Changed Logout to Refresh Data -->
+            <div class="nav-item" style="color:var(--primary)" onclick="refreshData()"><i class="fa-solid fa-sync"></i>
+                Refresh Data</div>
         </aside>
 
         <!-- CONTENT -->
@@ -670,8 +662,9 @@
                     <p style="color:#64748b; font-size:0.875rem">Learning and Mentorship Program</p>
                 </div>
 
-                <div style="position:relative" onmouseleave="closeLogout()">
-                    <div class="profile-widget" onclick="toggleLogout()" onmouseenter="openLogout()">
+                <div style="position:relative">
+                    <!-- Wrapped in relative container for hover menu -->
+                    <div class="profile-widget">
                         <div class="avatar">AD</div>
                         <div class="p-info">
                             <span class="p-name" style="display:block; font-size:0.875rem; font-weight:600">Admin
@@ -679,14 +672,18 @@
                             <span class="p-role" style="display:block; font-size:0.7rem; color:var(--text-muted)">Super
                                 Admin</span>
                         </div>
-                        <i class="fa-solid fa-chevron-down"
-                            style="font-size:0.7rem; color:#9CA3AF; margin-left:auto"></i>
-                    </div>
-                    <!-- Logout Dropdown -->
-                    <div id="logout-menu" class="logout-pop"
-                        style="right:0; left:auto; top:110%; width:100%; min-width:160px">
-                        <div class="pop-item" onclick="handleLogout()" style="color:#ef4444"><i
-                                class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+
+                        <!-- NESTED POPUP for CSS Hover -->
+                        <div class="logout-pop">
+                            <div
+                                style="font-size:0.85rem; color:#64748b; margin-bottom:0.5rem; padding-bottom:0.5rem; border-bottom:1px solid #e2e8f0">
+                                Logged in as Admin
+                            </div>
+                            <button onclick="handleLogout()"
+                                style="width:100%; text-align:left; padding:0.5rem; background:none; border:none; color:#ef4444; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -1198,13 +1195,20 @@
             btn.disabled = false; btn.innerText = "Send OTP";
 
             if (error) {
+                msg.style.color = 'red';
                 msg.innerText = error.message;
             } else {
-                // Switch to Verify View
-                document.getElementById('form-magic').classList.add('hidden');
-                document.getElementById('view-otp').classList.remove('hidden');
-                localStorage.setItem('pending_email', email); // Store for verification
-                // alert('OTP sent to ' + email);
+                // SUCCESS: Show green message, STAY on form
+                msg.style.color = 'green';
+                msg.innerHTML = `
+                    <div style="font-weight:600"><i class="fa-solid fa-check-circle"></i> Link sent! Check your inbox.</div>
+                    <div style="font-size:0.85rem; margin-top:0.5rem; color:#1e293b">
+                        If you have a 6-digit code, <a href="#" onclick="document.getElementById('view-otp').classList.remove('hidden'); document.getElementById('form-magic').classList.add('hidden')" style="color:#0F766E; font-weight:600">enter it here</a>.
+                    </div>
+                `;
+
+                // Store email for verification step
+                localStorage.setItem('pending_email', email);
             }
         }
 
