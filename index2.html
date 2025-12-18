@@ -1102,33 +1102,33 @@
 
             // 2. Logic based on Session State
             if (session) {
-                // NOW we can clear the hash visually, as Supabase has consumed it
+                // NOW we can clear the hash visually
                 if (window.location.hash) {
                     history.replaceState(null, null, window.location.pathname);
                 }
 
                 const amr = session.user?.amr || [];
-                const isPasswordLogin = amr.some(r => r.method === 'password');
+                const isOtp = amr.some(r => r.method === 'otp' || r.method === 'magiclink');
                 const meta = session.user?.user_metadata || {};
                 const hasSetup = meta.setup_complete === true;
 
-                if (isPasswordLogin) {
-                    // Valid Password Session -> ENTER
+                // PERMISSIVE CHECK: 
+                // If it is NOT explicitly an OTP session, we assume it's a valid persistent session (likely Password).
+                // This fixes the issue where 'amr' might be empty on refresh.
+                if (!isOtp) {
                     showDashboard(session.user);
                 } else {
-                    // Valid Session BUT via OTP/Magic Link
+                    // It IS an OTP/Magic Link session
                     console.log("OTP Session. Setup Complete?", hasSetup);
 
                     if (hasSetup) {
-                        // User HAS a password but used Magic Link (maybe by mistake or trying to bypass).
-                        // STRICT SECURITY: Do not allow dashboard. Force them to login with password.
+                        // User HAS a password but is using Magic Link -> BLOCK
                         alert("For security, please sign in using your Password.");
                         await client.auth.signOut();
                         document.getElementById('loading-overlay').style.display = 'none';
                         window.location.reload();
                     } else {
-                        // User DOES NOT have a password set (First time / Recovery).
-                        // Allow them to set it.
+                        // User needs to set password -> ALLOW
                         showSetPassword();
                     }
                 }
