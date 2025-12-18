@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FanCode Live | Sports Streaming</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Teko:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* FanCode Dark Theme */
+            --bg-page: #0f0f0f;
+            --bg-card: #1e1e1e;
+            --bg-card-hover: #2a2a2a;
+            --primary: #FF3B30;
+            /* Official-ish Red */
+            --primary-hover: #e02e24;
+            --text-main: #ffffff;
+            --text-muted: #a1a1a1;
+            --accent: #FFCC00;
+
+            --tab-active-bg: #fff;
+            --tab-active-text: #000;
+            --tab-inactive-bg: #222;
+
+            --nav-height: 60px;
+        }
+
+        /* --- GLOBAL --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+            padding-bottom: 80px;
+            /* Footer space */
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: var(--nav-height);
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: 'Teko', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .search-bar-wrap {
+            display: none;
+            /* Hidden on mobile, flex on desk */
+            background: #222;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            width: 300px;
+        }
+
+        /* --- TABS --- */
+        .tabs-container {
+            padding: 20px 5%;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            background: var(--tab-inactive-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            color: var(--tab-active-text);
+            border-color: white;
+            font-weight: 700;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+        }
+
+        /* --- GRID --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 0 5%;
+            margin-top: 10px;
+        }
+
+        /* --- CARD --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.25s, box-shadow 0.25s;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card-thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            position: relative;
+            background: #111;
+        }
+
+        .card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s;
+        }
+
+        .badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            text-transform: uppercase;
+        }
+
+        .badge-live {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+        }
+
+        .card-content {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            color: #eee;
+            /* Limit lines */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- PLAYER --- */
+        #player-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #player-modal.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .player-container {
+            width: 90%;
+            max-width: 1100px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(255, 59, 48, 0.1);
+            position: relative;
+        }
+
+        .close-player {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* --- SKELETON LOADING --- */
+        .skeleton {
+            background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .sk-card {
+            height: 280px;
+            border-radius: 12px;
+        }
+
+        /* --- DISCLAIMER --- */
+        #disclaimer {
+            background: #2a2100;
+            color: #ffd700;
+            padding: 12px 5%;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ffd700;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 5%;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media(min-width: 768px) {
+            .search-bar-wrap {
+                display: flex;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- DISCLAIMER -->
+    <div id="disclaimer">
+        <span><b>Note:</b> This content is provided for educational purposes. Do not pay for access.</span>
+        <button onclick="document.getElementById('disclaimer').style.display='none'"
+            style="background:none; border:none; color:inherit; font-size:1.2rem; cursor:pointer">&times;</button>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo"><i class="fa-solid fa-play"></i> Fan<span>Code</span></div>
+        <div class="search-bar-wrap">
+            <i class="fa-solid fa-search" style="color:#666; margin-right:10px"></i>
+            <input type="text" placeholder="Search events..."
+                style="background:none; border:none; color:white; width:100%; outline:none;">
+        </div>
+        <div class="logo" style="font-size:1rem; font-weight:400; color:#ccc">Login</div>
+    </header>
+
+    <!-- TABS -->
+    <div class="tabs-container" id="tabs-container">
+        <button class="tab-btn active" data-filter="all">All</button>
+        <button class="tab-btn" data-filter="LIVE"><span class="live-dot"></span> Live Now</button>
+        <button class="tab-btn" data-filter="Cricket">Cricket</button>
+        <button class="tab-btn" data-filter="Football">Football</button>
+        <button class="tab-btn" data-filter="Kabaddi">Kabaddi</button>
+        <button class="tab-btn" data-filter="Basketball">Basketball</button>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid-container" id="grid">
+        <!-- JS will populate or Skeletons -->
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+    </div>
+
+    <!-- PLAYER OVERLAY -->
+    <div id="player-modal">
+        <div class="player-container">
+            <button class="close-player" onclick="closePlayer()">&times;</button>
+            <iframe id="vid-frame" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 FanCode Clone | Designed by Lakshman</p>
+    </footer>
+
+    <script>
+        const API_URL = 'https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json';
+        const PROXY_BASE = './player.html?stream='; // Or direct depending on request
+
+        let allEvents = [];
+        let currentFilter = 'all';
+
+        async function init() {
+            renderSkeletons();
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                allEvents = data.matches || [];
+                renderEvents();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('grid').innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:#666">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; margin-bottom:15px"></i><br>
+                    Failed to load matches.
+                </div>`;
+            }
+        }
+
+        function renderSkeletons() {
+            document.getElementById('grid').innerHTML = Array(8).fill('<div class="skeleton sk-card"></div>').join('');
+        }
+
+        function renderEvents() {
+            const container = document.getElementById('grid');
+            container.innerHTML = '';
+
+            const filtered = allEvents.filter(m => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'LIVE') return m.status === 'LIVE' || m.status === 'In Progress'; // Adjust based on API
+                // Category match:
+                const cat = (m.event_category || '').toLowerCase();
+                return cat.includes(currentFilter.toLowerCase());
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#555">No matches found.</div>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                const isLive = (m.status || '').toUpperCase() === 'LIVE';
+                const img = m.src || 'https://via.placeholder.com/640x360/111/444?text=FanCode';
+                const title = m.title || 'Untitled Match';
+                const startTime = m.startTime ? new Date(m.startTime).toLocaleString() : 'Coming Soon'; // Adjust prop name if needed
+
+                // Link logic
+                const link = m.dai_url || m.url || (m.stream ? m.stream.url : null);
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openPlayer(link);
+
+                card.innerHTML = `
+                    <div class="card-thumb">
+                        <img src="${img}" alt="Match" loading="lazy">
+                        <span class="badge">${m.event_category || 'Sport'}</span>
+                        ${isLive ? '<span class="badge-live"><span class="live-dot" style="width:6px;height:6px;box-shadow:none"></span> LIVE</span>' : ''}
+                    </div>
+                    <div class="card-content">
+                        <div>
+                            <div class="card-title">${title}</div>
+                            <div class="card-meta">
+                                <i class="fa-regular fa-clock"></i> ${m.status || 'Upcoming'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // TABS
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderEvents();
+            });
+        });
+
+        // PLAYER
+        function openPlayer(url) {
+            if (!url) return alert("Stream not available yet.");
+            const embedUrl = PROXY_BASE + encodeURIComponent(url);
+            document.getElementById('vid-frame').src = embedUrl;
+            document.getElementById('player-modal').classList.add('open');
+        }
+
+        function closePlayer() {
+            document.getElementById('player-modal').classList.remove('open');
+            document.getElementById('vid-frame').src = '';
+        }
+
+        // Keyblocker for safety
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key == 'F12' || (e.ctrlKey && e.shiftKey && e.key == 'I')) e.preventDefault();
+        });
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>
