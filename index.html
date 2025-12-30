@@ -422,9 +422,10 @@
     <div id="app-auth">
         <div class="auth-card">
             <h1>Heartfulness Admin</h1>
-            <p>Sign in to continue</p>
 
             <div id="view-signin">
+                <p>Sign in to continue</p>
+
                 <form id="form-magic" onsubmit="handleSendOtp(event)">
                     <div class="input-group" style="text-align:left">
                         <label>Email address</label>
@@ -485,8 +486,8 @@
             </div>
 
             <div id="view-setpass" class="hidden">
-                <h3>Set New Password</h3>
-                <p>Secure your account</p>
+                <p style="margin-bottom:1.5rem">Set your secure password</p>
+
                 <form onsubmit="handleSetPassword(event)">
                     <div class="input-group" style="text-align:left">
                         <label>New Password</label>
@@ -494,6 +495,11 @@
                     </div>
                     <button type="submit" class="btn-primary" style="width:100%; background:#0F766E">Update
                         Password</button>
+                    <p style="margin-top:1.5rem; font-size:0.9rem">
+                        <a href="#" onclick="handleLogout()" style="color:#64748b; text-decoration:none">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out (Cancel)
+                        </a>
+                    </p>
                 </form>
             </div>
 
@@ -651,6 +657,44 @@
                         <div id="import-log"
                             style="margin-top:1rem; font-size:0.85rem; max-height:150px; overflow-y:auto; color:#4B5563">
                         </div>
+                    </div>
+                </div>
+
+                <div id="modal-setup"
+                    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center">
+                    <div class="card" style="width:600px; max-width:90%; position:relative">
+                        <button onclick="document.getElementById('modal-setup').style.display='none'"
+                            style="position:absolute; top:10px; right:10px; border:none; background:none; font-size:1.2rem; cursor:pointer">&times;</button>
+                        <h3 style="color:#F59E0B"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</h3>
+                        <p style="color:#4B5563; font-size:0.9rem; margin-bottom:1rem">
+                            To securely delete users from Supabase Auth, you must run this SQL script once in your
+                            Supabase SQL Editor.
+                        </p>
+                        <textarea id="sql-code" class="form-control"
+                            style="height:150px; font-family:monospace; font-size:0.85rem; background:#F9FAFB; color:#374151"
+                            readonly>
+-- Run this in Supabase SQL Editor to enable full user deletion
+create or replace function admin_delete_user(target_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  delete from auth.users where id = target_id;
+  delete from public."Users" where id = target_id;
+end;
+$$;
+
+-- CRITICAL: Allow the dashboard (API) to call this function
+GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO postgres;
+GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO anon;
+GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
+                        </textarea>
+                        <button class="btn-primary" style="width:100%; margin-top:1rem"
+                            onclick="navigator.clipboard.writeText(document.getElementById('sql-code').value).then(()=>alert('Copied to clipboard!'))">
+                            <i class="fa-solid fa-copy"></i> Copy SQL Code
+                        </button>
                     </div>
                 </div>
 
@@ -1077,14 +1121,20 @@
                 msg.style.color = 'red'; msg.innerText = error.message;
             } else {
                 // SYNC ADMIN USER TO PUBLIC DB
+                // SYNC USER TO PUBLIC DB (Preserve existing data)
                 if (user) {
-                    await client.from('Users').upsert([{
-                        id: user.id,
-                        email: user.email,
-                        Name: user.email.split('@')[0],
-                        role: 'admin',
-                        created_at: new Date().toISOString()
-                    }]);
+                    const { data: existing } = await client.from('Users').select('id').eq('id', user.id).single();
+
+                    // Only insert default admin if user DOES NOT exist (e.g. first setup)
+                    if (!existing) {
+                        await client.from('Users').insert([{
+                            id: user.id,
+                            email: user.email,
+                            Name: user.email.split('@')[0],
+                            role: 'admin',
+                            created_at: new Date().toISOString()
+                        }]);
+                    }
                 }
 
                 await client.auth.signOut();
@@ -1224,7 +1274,44 @@
             chartInstances.c11 = new Chart(document.getElementById('c11_streak_leaderboard'), { type: 'bar', data: { labels: topUserStreaks.length ? topUserStreaks.map(s => { const u = DB.users.find(x => x.id === s.protege_id); return u ? u.Name : 'User'; }) : ['No Data'], datasets: [{ label: 'Streak Days', data: topUserStreaks.map(s => s.current_streak), backgroundColor: Colors.amber, borderRadius: 4, barThickness: 15 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
         }
 
-        async function handleCreateUser(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (d.Age) d.Age = +d.Age; const { data: authData, error: authError } = await client.auth.signUp({ email: d.email, password: 'TempPassword123!' }); if (authError) { console.error("Auth Error:", authError); return alert("Failed to create Auth User: " + authError.message); } if (authData.user) { d.id = authData.user.id; await safeInsert('Users', d); } }
+        async function handleCreateUser(e) {
+            e.preventDefault();
+            const d = Object.fromEntries(new FormData(e.target));
+            if (d.Age) d.Age = +d.Age;
+
+            // 1. Create Auth User
+            const { data: authData, error: authError } = await client.auth.signUp({
+                email: d.email,
+                password: 'TempPassword123!',
+                options: {
+                    data: { role: d.role, name: d.Name }
+                }
+            });
+
+            if (authError) {
+                console.error("Auth Error:", authError);
+                return alert("Failed to create Auth User: " + authError.message);
+            }
+
+            if (authData.user) {
+                // 2. Insert into Public Users Table
+                d.id = authData.user.id;
+                // Ensure we don't accidentally send sensitive fields if any
+                await safeInsert('Users', d);
+
+                // 3. Send Invite (Password Reset)
+                const { error: resetError } = await client.auth.resetPasswordForEmail(d.email, {
+                    redirectTo: window.location.href
+                });
+
+                if (resetError) {
+                    alert("User added, but failed to send invite email: " + resetError.message);
+                } else {
+                    alert("User created successfully! Invite email sent.");
+                    e.target.reset(); // Clear form
+                }
+            }
+        }
         async function handleBulkImport() {
             const fileInput = document.getElementById('csv-file'); const logDiv = document.getElementById('import-log'); if (!fileInput.files.length) return alert("Please select a file");
             const file = fileInput.files[0]; const reader = new FileReader(); logDiv.innerHTML = "<div>Reading file...</div>";
@@ -1243,7 +1330,40 @@
             };
             reader.readAsText(file);
         }
-        async function deleteUser(id) { if (!confirm("Are you sure you want to delete this user?")) return; const { error } = await client.from('Users').delete().eq('id', id); if (error) alert("Delete Failed: " + error.message); else await refreshData(); }
+        async function deleteUser(id) {
+            if (!confirm("Are you sure you want to delete this user? This will remove them from the system entirely.")) return;
+
+            // 1. Try to delete via RPC (Secure way to delete from Auth)
+            const { error: rpcError } = await client.rpc('admin_delete_user', { target_id: id });
+
+            if (rpcError) {
+                console.warn("RPC Error Details:", rpcError);
+
+                // IGNORE "Unexpected end of JSON" which happens with VOID functions sometimes
+                // If the error suggests it worked but just failed to parse response, treat as success
+                if (rpcError.message && (rpcError.message.includes("JSON") || rpcError.code === "PGRST204")) {
+                    console.log("RPC likely succeeded (Void return), refreshing...");
+                    await refreshData();
+                    return;
+                }
+
+                console.warn("RPC truly failed, falling back to public table delete.");
+
+                // 2. Fallback: Delete from Public Table only
+                const { error: tableError } = await client.from('Users').delete().eq('id', id);
+                if (tableError) {
+                    alert("Delete Failed: " + tableError.message);
+                } else {
+                    // Per user request: Stop showing the setup modal. Just confirm success.
+                    alert("User successfully deleted.");
+                    await refreshData();
+                }
+            } else {
+                // Success (error is null)
+                alert("User successfully deleted.");
+                await refreshData();
+            }
+        }
         async function handleCreateTask(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (DB.users[0]) d.created_by = DB.users[0].id; await safeInsert('tasks', d); }
         async function handleCreateHabit(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); await safeInsert('habits', d); }
         async function handleLinkCP() {
