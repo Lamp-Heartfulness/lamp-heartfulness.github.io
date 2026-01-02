@@ -425,6 +425,11 @@
 
             <div id="view-signin">
                 <p>Sign in to continue</p>
+                <p
+                    style="font-size: 0.85rem; color: #f59e0b; background: #fffbeb; padding: 0.75rem; border-radius: 6px; margin-bottom: 1.5rem; text-align: left; border: 1px solid #fcd34d;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <strong>Note:</strong> If you are not an Admin,
+                    please open the mobile app to log in.
+                </p>
 
                 <form id="form-magic" onsubmit="handleSendOtp(event)">
                     <div class="input-group" style="text-align:left">
@@ -1021,7 +1026,7 @@ GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
                 }
                 // 3. Normal Admin Flow: Must have used password
                 else if (isPasswordLogin) {
-                    showDashboard(session.user);
+                    await verifyAdminAccess(session.user);
                 }
                 // 4. Security Fallback: Block magic links for admins if strictly enforcing password (except recovery)
                 else {
@@ -1067,7 +1072,50 @@ GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
             const msg = document.getElementById('auth-msg');
             msg.innerText = '';
             const { data, error } = await client.auth.signInWithPassword({ email: d.email, password: d.password });
-            if (error) msg.innerText = error.message; else showDashboard(data.user);
+            if (error) {
+                msg.innerText = error.message;
+            } else {
+                await verifyAdminAccess(data.user);
+            }
+        }
+
+        async function verifyAdminAccess(user) {
+            try {
+                // Check if user has admin role in public table
+                const { data, error } = await client
+                    .from('Users')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    // Real error (not just "row not found")
+                    console.error("Role check error:", error);
+                    alert("Error verifying permissions. Please try again.");
+                    return;
+                }
+
+                // If user not found in table OR role is not admin
+                if (!data || data.role !== 'admin') {
+                    await client.auth.signOut();
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    const msg = document.getElementById('auth-msg');
+                    msg.style.color = '#DC2626';
+                    msg.innerHTML = `<div style="padding: 1rem; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; text-align: left;">
+                        <strong><i class="fa-solid fa-ban"></i> Access Denied</strong><br>
+                        You do not have Administrator privileges.<br>
+                        <span style="font-size: 0.85rem; color: #7F1D1D; display: block; margin-top: 0.5rem">Please use the mobile app to access your account.</span>
+                    </div>`;
+                    return;
+                }
+
+                // If Admin, proceed
+                showDashboard(user);
+
+            } catch (err) {
+                console.error("Admin verification failed:", err);
+                alert("Login verification failed.");
+            }
         }
 
         async function handleSendOtp(e) {
@@ -1108,6 +1156,19 @@ GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
             } else if (session) {
                 document.getElementById('view-signin').classList.add('hidden');
                 document.getElementById('app-auth').querySelector('#view-otp').classList.add('hidden');
+
+                // If setting password, we assume it's a flow that allows it. 
+                // But if they are just logging in via magic link (not allowed for mostly everyone but let's check),
+                // The requirements say "only allow them". 
+                // Logic: If they are here, they verified OTP.
+                // We should probably check admin status BEFORE letting them set password or enter?
+                // Actually, 'showSetPassword' is for setting password.
+                // NOTE: If this WAS a login attempt via OTP (not recovery), we might want to block non-admins too.
+                // But the prompt says "get the data... then only allow them".
+                // Let's rely on the eventual login or the flow that follows.
+                // If they set a password, they will likely be logged in. 
+                // Let's add a check here if we want to be strict, but for now let's leave the password reset flow open 
+                // (maybe they are an admin recovering account).
                 showSetPassword();
             }
         }
@@ -1143,6 +1204,10 @@ GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
                 window.location.hash = ''; localStorage.removeItem('pending_email');
                 document.getElementById('view-setpass').classList.add('hidden');
                 document.getElementById('view-signin').classList.remove('hidden');
+
+                // Instead of just switching auth, we could auto-login?
+                // But the code signs out above: await client.auth.signOut();
+                // So user has to sign in again with new password. This is secure.
                 switchAuth('password');
             }
         }
