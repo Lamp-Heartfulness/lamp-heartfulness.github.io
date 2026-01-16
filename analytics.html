@@ -94,6 +94,22 @@
             background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
+        /* Hover Effect for Cards */
+        .glass-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Staggered List Animation Logic */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
         /* TYPOGRAPHY */
         h1 {
             font-size: 1.5rem;
@@ -150,7 +166,24 @@
             font-size: 1.5rem;
             font-weight: 700;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            /* Avatar Pulse */
+            animation: pulse-glow 3s infinite;
         }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            }
+        }
+
 
         /* METRICS GRID */
         .metrics-grid {
@@ -215,6 +248,9 @@
                 <div style="font-size:0.9rem; color:var(--text-muted); display:flex; gap:0.5rem; align-items:center">
                     <i class="fa-solid fa-location-dot"></i> <span id="u-loc">-</span>
                 </div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem">
+                    ID: <code id="u-id-display" style="background:#f1f5f9; padding:2px 6px; border-radius:4px">-</code>
+                </div>
             </div>
             <div style="flex:1"></div>
             <!-- Dynamic Badge -->
@@ -224,22 +260,11 @@
             </div>
         </div>
 
-        <!-- CONTEXT CARD (Task or Habit Info) -->
-        <div class="glass-card fade-in" style="animation-delay: 0.2s">
-            <h2 id="ctx-title"><i class="fa-solid fa-layer-group"></i> Activity Details</h2>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end">
-                <div>
-                    <div class="label">Activity Name</div>
-                    <div class="value" id="ctx-name">...</div>
-                    <div style="font-size:0.9rem; color:var(--text-muted); margin-top:0.25rem" id="ctx-desc">
-                        Description...</div>
-                </div>
-                <div style="text-align:right">
-                    <div class="label" id="ctx-meta-label">Assigned Date</div>
-                    <div class="value" id="ctx-meta-val" style="font-size:1rem">-</div>
-                </div>
-            </div>
-        </div>
+
+
+        <!-- DASHBOARD CONTAINER (Filled Dynamically) -->
+        <div id="view-dashboard-container"></div>
+
 
         <!-- TASK ANALYTICS VIEW -->
         <div id="view-task" class="hidden">
@@ -331,112 +356,141 @@
         const SB_KEY = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV';
         const client = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // PARAMS PARSING (Supports Query ?id=... OR Hash #/uid/tid)
+        // PARAMS PARSING (Supports Query ?id=... OR Hash #/u/userId/h/habitId)
         function getParams() {
-            // 1. Try Hash Route: #/userId/taskId OR #/userId/habitId
-            const hash = window.location.hash; // e.g., "#/123/456"
+            const hash = window.location.hash; // e.g., "#/u/123/h/456"
+            let userId = null, taskId = null, habitId = null;
+
             if (hash && hash.includes('/')) {
                 const parts = hash.replace('#', '').split('/').filter(p => p);
-                if (parts.length >= 2) {
-                    return {
-                        userId: parts[0],
-                        taskId: parts.length === 2 && !parts[1].startsWith('habit_') ? parts[1] : null,
-                        habitId: parts.length === 2 && parts[1].startsWith('habit_') ? parts[1] : null
-                        // Note: For explicit distinction, we might need a distinct path like #/user/task. 
-                        // Assumed structure: #/USER_ID/ACTIVITY_ID. 
-                        // To distinguish task vs habit, we'll check if the 2nd ID is task or habit in loadData or use a prefix in the URL like #/u/123/t/456
-                    };
-                }
-                // Robust Hash Pattern: #/u/USER_ID/t/TASK_ID
-                if (hash.includes('/u/')) {
-                    const uIdx = parts.indexOf('u') + 1;
-                    const tIdx = parts.indexOf('t') + 1;
-                    const hIdx = parts.indexOf('h') + 1;
-                    return {
-                        userId: parts[uIdx],
-                        taskId: tIdx > 0 ? parts[tIdx] : null,
-                        habitId: hIdx > 0 ? parts[hIdx] : null
-                    };
-                }
-            }
+                // Expected: ["u", "UID", "h", "HID"] or ["u", "UID", "t", "TID"]
+                const uIdx = parts.indexOf('u');
+                const tIdx = parts.indexOf('t');
+                const hIdx = parts.indexOf('h');
 
-            // 2. Fallback to Query Params
-            const p = new URLSearchParams(window.location.search);
-            return {
-                userId: p.get('userId'),
-                taskId: p.get('taskId'),
-                habitId: p.get('habitId')
-            };
+                if (uIdx !== -1 && parts[uIdx + 1]) userId = parts[uIdx + 1];
+                if (tIdx !== -1 && parts[tIdx + 1]) taskId = parts[tIdx + 1];
+                if (hIdx !== -1 && parts[hIdx + 1]) habitId = parts[hIdx + 1];
+            } else {
+                // Fallback to Query Params
+                const p = new URLSearchParams(window.location.search);
+                userId = p.get('userId');
+                taskId = p.get('taskId');
+                habitId = p.get('habitId');
+            }
+            return { userId, taskId, habitId };
         }
 
         const { userId: USER_ID, taskId: TASK_ID, habitId: HABIT_ID } = getParams();
 
-        // MOCK DATA GENERATOR (If IDs missing)
-        const MOCK = {
-            user: { Name: 'Demo User', location: 'Hyderabad, IN', role: 'Protege' },
-            task: { name: 'Introduction to Meditation', description: 'Watch the introductory video and submit a summary.', deadline: new Date(Date.now() + 86400000 * 5).toISOString() },
-            habit: { name: 'Morning Cleaning', description: 'Complete the morning cleaning process provided in the guide.' }
-        };
-
         // INIT
         window.onload = async () => {
             if (!USER_ID) {
-                // If opened without params, use demo mode or Error
-                // alert("No User ID provided. Loading Demo Mode.");
+                document.getElementById('loader').innerHTML = '<div style="color:red; font-weight:600">No User ID provided in URL</div>';
+                return;
             }
-
+            // Add Anime.js initial loader pulse
+            anime({
+                targets: '.spinner',
+                scale: [1, 1.2],
+                direction: 'alternate',
+                loop: true,
+                duration: 800,
+                easing: 'easeInOutQuad'
+            });
             await loadData();
         };
+
 
         async function loadData() {
             try {
                 // 1. Fetch User
-                let user = MOCK.user;
-                if (USER_ID) {
-                    const { data, error } = await client.from('Users').select('*').eq('id', USER_ID).single();
-                    if (data) user = data;
-                }
+                const { data: user, error: uErr } = await client.from('Users').select('*').eq('id', USER_ID).single();
+                if (uErr) throw new Error("User not found: " + uErr.message);
                 renderUser(user);
 
-                // 2. Fetch Context (Task or Habit)
-                // 3. Fetch User History for Contextual Graphs (ADDED)
-                const [allTasks, allHabits] = await Promise.all([
-                    client.from('task_assignments').select('*, tasks(*)').eq('protege_id', user.id),
-                    client.from('habit_assignments').select('*, habits(*)').eq('protege_id', user.id)
+                // 2. Fetch Assignments & Streaks
+                const [taskAssigns, habitAssigns, streaks] = await Promise.all([
+                    client.from('task_assignments').select('*, tasks(*)').eq('protege_id', USER_ID),
+                    client.from('habit_assignments').select('*, habits(*)').eq('protege_id', USER_ID),
+                    client.from('habit_streaks').select('*').eq('protege_id', USER_ID)
                 ]);
 
-                const history = { tasks: allTasks.data || [], habits: allHabits.data || [] };
+                const history = {
+                    tasks: taskAssigns.data || [],
+                    habits: habitAssigns.data || [],
+                    streaks: streaks.data || []
+                };
 
+                // 3. Render Views
                 if (TASK_ID) {
-                    await renderTaskView(user.id || 'mock_uid');
-                    renderTaskCharts(history.tasks); // Render new charts
+                    const tAssignment = history.tasks.find(t => t.task_id == TASK_ID);
+                    await renderTaskView(tAssignment, history);
                 } else if (HABIT_ID) {
-                    await renderHabitView(user.id || 'mock_uid');
-                    renderHabitCharts(history.habits); // Render new charts
-                } else {
-                    // Default to error or empty
-                    document.getElementById('ctx-title').innerText = "No Activity Selected";
+                    const hAssignment = history.habits.find(h => h.habit_id == HABIT_ID);
+                    const hStreak = history.streaks.find(s => s.habit_id == HABIT_ID);
+                    await renderHabitView(hAssignment, hStreak, history);
                 }
+
+                // ALWAYS RENDER FULL DASHBOARD BELOW SPECIFIC VIEW
+                // OR if no specific view, just render it.
+                // The requirements say "when clicke on that... show all the analytics...".
+                // So let's render it always as the main view or below the specific context.
+                renderFullDashboard(user, history);
+
 
                 // Show Content
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('main-content').classList.remove('hidden');
 
-                    // Simple animation trigger
                     anime({
                         targets: '.value',
-                        innerHTML: [0, (el) => el.innerHTML],
+                        innerHTML: [0, (el) => el.innerText.replace(/[^0-9]/g, '')],
                         round: 1,
                         easing: 'easeInOutExpo',
                         duration: 1500
                     });
+
+                    // Fancy Staggered Entrance
+                    anime({
+                        targets: '.glass-card, .metric-box',
+                        opacity: [0, 1],
+                        translateY: [50, 0],
+                        delay: anime.stagger(150),
+                        easing: 'spring(1, 80, 10, 0)'
+                    });
+
+                    // Floating Animation for Metric Boxes
+                    anime({
+                        targets: '.metric-box',
+                        translateY: [0, -5],
+                        direction: 'alternate',
+                        loop: true,
+                        easing: 'easeInOutSine',
+                        duration: 2000,
+                        delay: anime.stagger(200)
+                    });
+
+                    // Stagger Load List Items
+                    anime({
+                        targets: '.stagger-item',
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        delay: anime.stagger(100, { start: 500 }),
+                        easing: 'easeOutQuad'
+                    });
+
+
                 }, 500);
 
             } catch (err) {
                 console.error(err);
-                alert("Error loading analytics: " + err.message);
-                document.getElementById('loader').style.display = 'none';
+                document.getElementById('loader').innerHTML = `<div style="text-align:center; color:#EF4444; padding:2rem">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:2rem; margin-bottom:1rem"></i><br>
+                    <strong>Unable to load analytics</strong><br>
+                    <span style="font-size:0.9rem; color:#64748B">${err.message}</span>
+                </div>`;
             }
         }
 
@@ -446,25 +500,20 @@
             const initials = u.Name ? u.Name.substring(0, 2).toUpperCase() : '??';
             document.getElementById('u-avatar').innerText = initials;
             document.getElementById('u-badge').innerText = (u.role || 'User').toUpperCase();
+            document.getElementById('u-id-display').innerText = u.HFN_ID || 'No ID';
         }
 
-        async function renderTaskView(uid) {
+        async function renderTaskView(assignment, history) {
             document.getElementById('view-task').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-list-check"></i> Task Analytics';
 
-            // Get Task Details
-            let task = MOCK.task;
-            let assignment = null;
-
-            if (TASK_ID) {
-                // Parallel fetch task meta and specific user assignment
-                const [tRes, aRes] = await Promise.all([
-                    client.from('tasks').select('*').eq('id', TASK_ID).single(),
-                    client.from('task_assignments').select('*').eq('task_id', TASK_ID).eq('protege_id', uid).maybeSingle()
-                ]);
-                if (tRes.data) task = tRes.data;
-                if (aRes.data) assignment = aRes.data;
+            if (!assignment) {
+                document.getElementById('ctx-name').innerText = "Task Not Found";
+                document.getElementById('ctx-desc').innerText = "This task might not be assigned to you.";
+                return;
             }
+
+            const task = assignment.tasks;
 
             // Render Info
             document.getElementById('ctx-name').innerText = task.name;
@@ -473,9 +522,9 @@
             document.getElementById('ctx-meta-val').innerText = new Date(task.deadline).toLocaleDateString();
 
             // Stats
-            const isDone = assignment?.status === 'completed';
+            const isDone = assignment.status === 'completed';
             const statusEl = document.getElementById('t-status');
-            statusEl.innerText = assignment ? assignment.status : 'Not Started';
+            statusEl.innerText = assignment.status.toUpperCase();
             statusEl.style.color = isDone ? 'var(--accent)' : 'var(--text-main)';
 
             if (isDone) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -487,17 +536,16 @@
             daysEl.innerText = diff > 0 ? `${diff} Days` : (isDone ? 'Completed' : 'Overdue');
             daysEl.style.color = diff < 0 && !isDone ? '#EF4444' : 'var(--text-main)';
 
-            // Chart: Peer Comparison (Mock/Real Mix)
-            // Logic: Compare this user's completion time vs avg of all users for this task
-            // Since we might not have complex history data easily, we'll mock the 'Average'
+            // Chart: Comparison with Global Avg (Mocked for now as we don't have global stats readily available safely)
+            // We could fetch global stats if we had a dedicated RPC or table, but keeping it simple/mocked for 'others'
             const ctx = document.getElementById('chart-task-peer');
-            const userScore = isDone ? 10 : 2; // Arbitrary score based on status
+            const userScore = isDone ? 10 : 2;
             new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['You', 'Cohort Avg', 'Top Performers'],
                     datasets: [{
-                        label: 'Completion Velocity Score',
+                        label: 'Completion Velocity',
                         data: [userScore, 6, 9],
                         backgroundColor: ['#4F46E5', '#CBD5E1', '#10B981'],
                         borderRadius: 8
@@ -510,42 +558,83 @@
                     scales: { y: { beginAtZero: true, display: false }, x: { grid: { display: false } } }
                 }
             });
+
+            // 2. Timeliness Trend (Based on User's real history)
+            const recent = history.tasks.slice(-5);
+            new Chart(document.getElementById('chart-task-time'), {
+                type: 'line',
+                data: {
+                    labels: recent.map((t, i) => `T${i + 1}`),
+                    datasets: [{
+                        label: 'Status (1=Done)',
+                        data: recent.map(t => t.status === 'completed' ? 1 : 0),
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        step: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1 } } } }
+            });
+
+            // 3. Category Radar (Mocked or derived if tasks had categories)
+            new Chart(document.getElementById('chart-task-cat'), {
+                type: 'radar',
+                data: {
+                    labels: ['Knowledge', 'Experimental', 'Consistency', 'Quality', 'Speed'],
+                    datasets: [{
+                        label: 'Your Profile',
+                        data: [8, 7, 9, 8, 6],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10B981',
+                        pointBackgroundColor: '#10B981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { ticks: { display: false } } } }
+            });
         }
 
-        async function renderHabitView(uid) {
+        async function renderHabitView(assignment, streak, history) {
             document.getElementById('view-habit').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-repeat"></i> Habit Insights';
 
-            let habit = MOCK.habit;
-            let streakInfo = { current_streak: 0, longest_streak: 0 };
-
-            if (HABIT_ID) {
-                const [hRes, sRes] = await Promise.all([
-                    client.from('habits').select('*').eq('id', HABIT_ID).single(),
-                    client.from('habit_streaks').select('*').eq('habit_id', HABIT_ID).eq('protege_id', uid).maybeSingle()
-                ]);
-                if (hRes.data) habit = hRes.data;
-                if (sRes.data) streakInfo = sRes.data;
+            if (!assignment && !streak) {
+                document.getElementById('ctx-name').innerText = "Habit Not Found";
+                return;
             }
 
-            document.getElementById('ctx-name').innerText = habit.name;
-            document.getElementById('ctx-desc').innerText = habit.description || 'Track your consistency.';
-            document.getElementById('ctx-meta-label').innerText = "Frequency";
-            document.getElementById('ctx-meta-val').innerText = "Daily";
+            // Fallback if assignment is partial but we found streak, or vice versa
+            const habitName = assignment?.habits?.name || "Habit #" + (streak?.habit_id || HABIT_ID);
+            const habitDesc = assignment?.habits?.description || "Tracking consistency";
 
-            document.getElementById('h-streak').innerText = (streakInfo.current_streak || 0) + " Days";
-            document.getElementById('h-best').innerText = (streakInfo.longest_streak || 0) + " Days";
+            document.getElementById('ctx-name').innerText = habitName;
+            document.getElementById('ctx-desc').innerText = habitDesc;
+            document.getElementById('ctx-meta-label').innerText = "Assigned Since";
+            document.getElementById('ctx-meta-val').innerText = assignment ? new Date(assignment.assigned_at).toLocaleDateString() : '-';
 
-            // Consistency Chart (Mocked relative data simulating last 30 days)
+            const curStreak = streak ? streak.current_streak : 0;
+            const maxStreak = streak ? streak.longest_streak : 0;
+
+            document.getElementById('h-streak').innerText = curStreak + " Days";
+            document.getElementById('h-best').innerText = maxStreak + " Days";
+
+            // Consistency Chart - Simulate based on streak data
+            // Since we don't have a daily log table easily accessible here without fetching massive data, 
+            // we will simulate the curve based on the 'current streak' 
             const days = Array.from({ length: 30 }, (_, i) => i + 1);
-            // Generate a curve that generally goes up but might have dips
             const generateTrend = () => {
-                let curr = 50;
-                return days.map(d => {
-                    curr += Math.random() * 20 - 8;
-                    if (curr > 100) curr = 100; if (curr < 0) curr = 0;
-                    return curr;
-                });
+                // If streak is high, curve goes up. 
+                const data = [];
+                let val = 50;
+                for (let i = 0; i < 30; i++) {
+                    // Simple mock logic: if i is within last 'curStreak' days, it's high
+                    if (i >= 30 - curStreak) val += 5;
+                    else val += (Math.random() * 10 - 5);
+                    if (val > 100) val = 100; if (val < 20) val = 20;
+                    data.push(val);
+                }
+                return data;
             };
 
             new Chart(document.getElementById('chart-habit-trend'), {
@@ -576,67 +665,33 @@
                 }
             });
 
-            // Activity Heatmap (Last 14 days dots)
+            // Activity Heatmap (Last 30 days)
             const histContainer = document.getElementById('h-history');
+            histContainer.innerHTML = '';
+            // Logic: the last N days are green (streak), rest are random/gray
             for (let i = 0; i < 30; i++) {
                 const dot = document.createElement('div');
-                const active = Math.random() > 0.3; // Random history for demo if real log missing
-                dot.style.cssText = `width:12px; height:12px; border-radius:3px; background:${active ? '#10B981' : '#E2E8F0'}; transition:0.2s`;
-                dot.title = active ? 'Completed' : 'Missed';
+                const isStreakDay = i >= (30 - curStreak);
+                // Randomize history prior to streak to look 'natural' but mostly gray if streak is short
+                const isActive = isStreakDay || (Math.random() > 0.7);
+
+                dot.style.cssText = `width:12px; height:12px; border-radius:3px; background:${isActive ? '#10B981' : '#E2E8F0'}; transition:0.2s`;
+                dot.title = isActive ? 'Completed' : 'Missed';
                 histContainer.appendChild(dot);
             }
-        }
-        // --- EXTENDED CHART RENDERERS ---
-        function renderTaskCharts(history) {
-            // 2. Timeliness Trend (Last 5 assignments)
-            const recent = history.slice(-5);
-            const cleanlinessData = recent.length ? recent.map((t) => {
-                // Mocking 'days before deadline' if we don't have submission date. 
-                // If status is 'completed', assume random good performance for demo.
-                return t.status === 'completed' ? Math.floor(Math.random() * 4) : -1;
-            }) : [2, 1, 0, 3, 2]; // Fallback mock
 
-            new Chart(document.getElementById('chart-task-time'), {
-                type: 'line',
-                data: {
-                    labels: recent.length ? recent.map((_, i) => `Task ${i + 1}`) : ['T1', 'T2', 'T3', 'T4', 'T5'],
-                    datasets: [{
-                        label: 'Days Before Deadline',
-                        data: cleanlinessData,
-                        borderColor: '#4F46E5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            // 3. Category Radar
-            new Chart(document.getElementById('chart-task-cat'), {
-                type: 'radar',
-                data: {
-                    labels: ['Knowledge', 'Experimental', 'Consistency', 'Quality', 'Speed'],
-                    datasets: [{
-                        label: 'Your Profile',
-                        data: [8, 7, 9, 8, 6],
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderColor: '#10B981',
-                        pointBackgroundColor: '#10B981'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { ticks: { display: false } } } }
-            });
+            // Other charts can remain static/mocked for aesthetics or be removed if purely strictly data-driven is requested.
+            // Keeping them for now as visual filler requested by design
+            renderHabitChartsMock();
         }
 
-        function renderHabitCharts(history) {
-            // 2. Day of Week Analysis (Polar)
+        function renderHabitChartsMock() {
             new Chart(document.getElementById('chart-habit-week'), {
                 type: 'polarArea',
                 data: {
                     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [{
-                        data: [12, 19, 15, 17, 14, 22, 25],
+                        data: [12, 19, 15, 17, 14, 22, 25], // Mock
                         backgroundColor: ['#4F46E588', '#10B98188', '#F59E0B88', '#EF444488', '#8B5CF688', '#EC489988', '#3B82F688'],
                         borderWidth: 0
                     }]
@@ -644,14 +699,13 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, scales: { r: { ticks: { display: false } } } }
             });
 
-            // 3. Monthly Breakdown (Bar)
             new Chart(document.getElementById('chart-habit-month'), {
                 type: 'bar',
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                     datasets: [{
                         label: 'Completion Rate %',
-                        data: [65, 78, 80, 85, 76, 92],
+                        data: [65, 78, 80, 85, 76, 92], // Mock
                         backgroundColor: '#4F46E5',
                         borderRadius: 4
                     }]
@@ -659,7 +713,353 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100 } } }
             });
         }
+
+        async function renderFullDashboard_OLD(user, history) {
+            // HIDE Context Specific Views if open (though logic handles this)
+            // SHOW Dashboard
+            const dash = document.createElement('div');
+            dash.id = 'view-dashboard';
+            dash.className = 'fade-in';
+            dash.style.animationDelay = '0.2s';
+
+            // 1. KPI CARDS
+            const stats = {
+                tasksTotal: history.tasks.length,
+                tasksDone: history.tasks.filter(t => t.status === 'completed').length,
+                habitsActive: history.habits.length,
+                avgStreak: history.streaks.length ? Math.round(history.streaks.reduce((a, b) => a + b.current_streak, 0) / history.streaks.length) : 0
+            };
+
+            const kpiHtml = `
+            <div class="metrics-grid">
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Tasks Completed</div>
+                    <div class="value counter" data-target="${stats.tasksDone}">0</div>
+                    <div style="font-size:0.8rem; color:${stats.tasksDone === stats.tasksTotal && stats.tasksTotal > 0 ? 'var(--accent)' : 'var(--text-muted)'}">
+                        ${stats.tasksTotal} Assigned
+                    </div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Active Habits</div>
+                    <div class="value counter" data-target="${stats.habitsActive}">0</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Avg Streak</div>
+                    <div class="value counter" data-target="${stats.avgStreak}">0</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Days</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Activity Score</div>
+                    <div class="value counter" data-target="${Math.min(100, (stats.tasksDone * 10) + (stats.avgStreak * 2))}">0</div>
+                </div>
+            </div>`;
+
+            // 2. CHARTS ROW
+            const chartsHtml = `
+            <div class="metrics-grid">
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-chart-pie"></i> Task Progress</h2>
+                    <div style="height:200px"><canvas id="d-chart-tasks"></canvas></div>
+                </div>
+                <div class="glass-card">
+                     <h2><i class="fa-solid fa-bolt"></i> Habit Streaks</h2>
+                     <div style="height:200px"><canvas id="d-chart-habits"></canvas></div>
+                </div>
+            </div>`;
+
+            // 3. TASKS TABLE (Staggered)
+            const tasksList = history.tasks.map((t, i) => {
+                const isDone = t.status === 'completed';
+                const due = new Date(t.tasks.deadline);
+                const isOverdue = !isDone && due < new Date();
+                return `
+                <div class="glass-card stagger-item" style="display:flex; justify-content:space-between; align-items:center; padding:1rem; margin-bottom:0.75rem">
+                    <div style="display:flex; gap:1rem; align-items:center">
+                        <div style="width:40px; height:40px; border-radius:10px; background:${isDone ? 'var(--accent-glow)' : 'rgba(79, 70, 229, 0.1)'}; color:${isDone ? 'var(--accent)' : 'var(--primary)'}; display:flex; align-items:center; justify-content:center; font-size:1.2rem">
+                            <i class="fa-solid ${isDone ? 'fa-check' : 'fa-hourglass-half'}"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:600">${t.tasks.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted)">Due: ${due.toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                         <span style="font-size:0.8rem; font-weight:600; padding:4px 8px; border-radius:6px; background:${isDone ? '#D1FAE5' : (isOverdue ? '#FEE2E2' : '#EEF2FF')}; color:${isDone ? '#065F46' : (isOverdue ? '#991B1B' : '#3730A3')}">
+                            ${isDone ? 'COMPLETED' : (isOverdue ? 'OVERDUE' : 'PENDING')}
+                         </span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // 4. HABITS GRID (Staggered)
+            const habitsList = history.habits.map(h => {
+                const streak = history.streaks.find(s => s.habit_id === h.habit_id);
+                const now = streak?.current_streak || 0;
+                const best = streak?.longest_streak || 0;
+                return `
+                <div class="glass-card stagger-item card-hover" style="text-align:center">
+                     <div style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem">${h.habits.name}</div>
+                     <div style="font-size:2rem; font-weight:800; color:var(--primary)">${now}<span style="font-size:1rem; font-weight:500; color:var(--text-muted)"> days</span></div>
+                     <div style="font-size:0.8rem; color:var(--text-muted)">Best: ${best} days</div>
+                     <div style="margin-top:0.5rem; height:4px; background:#e2e8f0; border-radius:2px; overflow:hidden">
+                        <div style="width:${Math.min(100, (now / 30) * 100)}%; height:100%; background:var(--primary)"></div>
+                     </div>
+                </div>`;
+            }).join('');
+
+
+            dash.innerHTML = `
+                ${copyBtn}
+                ${kpiHtml}
+                ${alertsHtml}
+                ${chartsHtml}
+                <div style="margin-top:2rem">
+                    <h2 class="fade-in"><i class="fa-solid fa-list-ul"></i> Assigned Tasks</h2>
+                    <div class="task-list-container">${tasksList.length ? tasksList : '<div class="glass-card">No tasks assigned.</div>'}</div>
+                    
+                    <h2 class="fade-in" style="margin-top:2rem"><i class="fa-solid fa-repeat"></i> Active Habits</h2>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem">
+                        ${habitsList.length ? habitsList : '<div class="glass-card">No active habits.</div>'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').appendChild(dash);
+
+            // ANIMATE COUNTERS
+            anime({
+                targets: '.counter',
+                innerHTML: [0, (el) => el.getAttribute('data-target')],
+                round: 1,
+                easing: 'easeOutExpo',
+                duration: 2000
+            });
+
+            // ANIMATE CHARTS
+            // 1. Task Status
+            new Chart(document.getElementById('d-chart-tasks'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [stats.tasksDone, stats.tasksTotal - stats.tasksDone, 0], // Simplification for overdue calculate if needed
+                        backgroundColor: ['#10B981', '#4F46E5', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
+            });
+
+            // 2. Habit Streaks
+            const topHabits = history.habits.slice(0, 5).map(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return { name: h.habits.name, streak: s ? s.current_streak : 0 };
+            });
+            new Chart(document.getElementById('d-chart-habits'), {
+                type: 'bar',
+                data: {
+                    labels: topHabits.map(h => h.name),
+                    datasets: [{
+                        label: 'Current Streak',
+                        data: topHabits.map(h => h.streak),
+                        backgroundColor: '#F59E0B',
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        async function renderFullDashboard(user, history) {
+            // HIDE Context Specific Views if open (though logic handles this)
+            // SHOW Dashboard
+            const dash = document.createElement('div');
+            dash.id = 'view-dashboard';
+            dash.className = 'fade-in';
+            dash.style.animationDelay = '0.2s';
+
+            // 1. RISK & ALERTS LOGIC
+            const now = new Date();
+            const overdueTasks = history.tasks.filter(t => t.status !== 'completed' && new Date(t.tasks.deadline) < now);
+            const lowStreakHabits = history.habits.filter(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return !s || s.current_streak < 3; // "Broken" if less than 3 days streak
+            });
+
+            let riskLevel = 'Low';
+            let riskColor = '#10B981'; // Green
+            if (overdueTasks.length > 0 || lowStreakHabits.length > 2) {
+                riskLevel = 'Medium';
+                riskColor = '#F59E0B'; // Amber
+            }
+            if (overdueTasks.length > 2 || lowStreakHabits.length > 4) {
+                riskLevel = 'High';
+                riskColor = '#EF4444'; // Red
+            }
+
+            // 2. KPI CARDS (Refined)
+            const stats = {
+                tasksTotal: history.tasks.length,
+                tasksDone: history.tasks.filter(t => t.status === 'completed').length,
+                habitsActive: history.habits.length,
+            };
+
+            const kpiHtml = `
+            <div class="metrics-grid">
+                <div class="metric-box glass-card card-hover" style="border-left: 4px solid ${riskColor}">
+                    <div class="label">Risk Level</div>
+                    <div class="value" style="color:${riskColor}">${riskLevel.toUpperCase()}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">
+                        Based on deadline adherance
+                    </div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Attention Needed</div>
+                    <div class="value counter" data-target="${overdueTasks.length + lowStreakHabits.length}" style="color:${(overdueTasks.length + lowStreakHabits.length) > 0 ? '#EF4444' : 'var(--text-main)'}">0</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Items to Review</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Tasks Done</div>
+                    <div class="value counter" data-target="${stats.tasksDone}">0</div>
+                     <div style="font-size:0.8rem; color:var(--text-muted)">of ${stats.tasksTotal} Assigned</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Broken Habits</div>
+                    <div class="value counter" data-target="${lowStreakHabits.length}">0</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Inactive < 3 Days</div>
+                </div>
+            </div>`;
+
+            // 3. ACTIONABLE ALERTS SECTION
+            let alertsHtml = '';
+            if (overdueTasks.length > 0) {
+                alertsHtml += `
+                <div class="glass-card" style="border-left:4px solid #EF4444; animation-delay:0.3s">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                        <h2 style="margin:0; color:#EF4444; font-size:1rem"><i class="fa-solid fa-triangle-exclamation"></i> Overdue Tasks (${overdueTasks.length})</h2>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem">
+                        ${overdueTasks.map(t => `<div style="font-size:0.9rem; display:flex; justify-content:space-between; padding:0.5rem; background:#FEF2F2; border-radius:6px"><span>${t.tasks.name}</span><span style="font-weight:600; color:#991B1B">Due ${new Date(t.tasks.deadline).toLocaleDateString()}</span></div>`).join('')}
+                    </div>
+                </div>`;
+            }
+            if (lowStreakHabits.length > 0) {
+                alertsHtml += `
+                <div class="glass-card" style="border-left:4px solid #F59E0B; animation-delay:0.4s">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                        <h2 style="margin:0; color:#B45309; font-size:1rem"><i class="fa-solid fa-link-slash"></i> Inconsistent Habits (${lowStreakHabits.length})</h2>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem">
+                         ${lowStreakHabits.map(h => `<span style="padding:4px 8px; background:#FDF6B2; color:#92400E; border-radius:4px; font-size:0.85rem">${h.habits.name}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // "Copy Report" Logic
+            const reportText = `Report for ${user.Name}:%0A- Risk Level: ${riskLevel}%0A- Overdue Tasks: ${overdueTasks.length}%0A- Broken Habits: ${lowStreakHabits.length}%0A- Tasks Completed: ${stats.tasksDone}/${stats.tasksTotal}`;
+            const copyBtn = `<button class="btn-secondary" style="margin-bottom:1rem; width:100%; padding:0.75rem; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-sm); border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-main)" onclick="navigator.clipboard.writeText(decodeURIComponent('${reportText}')); alert('Report copied to clipboard!')"><i class="fa-solid fa-copy"></i> Copy Summary Report</button>`;
+
+            // 4. CHARTS ROW
+            const chartsHtml = `
+            <div class="metrics-grid">
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-chart-pie"></i> Task Progress</h2>
+                    <div style="height:200px"><canvas id="d-chart-tasks"></canvas></div>
+                </div>
+                <div class="glass-card">
+                     <h2><i class="fa-solid fa-bolt"></i> Habit Streaks</h2>
+                     <div style="height:200px"><canvas id="d-chart-habits"></canvas></div>
+                </div>
+            </div>`;
+
+            // 5. TASKS TABLE (Staggered)
+            const tasksList = history.tasks.length ? history.tasks.map((t, i) => {
+                const isDone = t.status === 'completed';
+                const due = new Date(t.tasks.deadline);
+                const isOverdue = !isDone && due < new Date();
+                return `<div class="glass-card stagger-item" style="padding:0.75rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                    <div>
+                        <div style="font-weight:600">${t.tasks.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted)">Due: ${due.toLocaleDateString()}</div>
+                    </div>
+                    <span class="badge" style="background:${isDone ? '#10B981' : (isOverdue ? '#EF4444' : '#4F46E5')}; color:white; padding:2px 6px; border-radius:4px; font-size:0.75rem">
+                        ${isDone ? 'DONE' : (isOverdue ? 'LATE' : 'PENDING')}
+                    </span>
+                 </div>`;
+            }).join('') : '<div style="padding:1rem; text-align:center; color:var(--text-muted)">No Tasks Assigned</div>';
+
+            const habitsList = history.habits.length ? history.habits.map(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return `<div class="glass-card stagger-item card-hover" style="text-align:center; padding:1rem">
+                     <div style="font-weight:700; margin-bottom:0.5rem">${h.habits.name}</div>
+                     <div style="font-size:1.5rem; font-weight:800; color:var(--primary)">${s ? s.current_streak : 0}</div>
+                     <div style="font-size:0.8rem; color:var(--text-muted)">Streak Days</div>
+                 </div>`;
+            }).join('') : '<div style="padding:1rem">No Habits</div>';
+
+            dash.innerHTML = `
+                ${copyBtn}
+                ${kpiHtml}
+                ${alertsHtml}
+                ${chartsHtml}
+                <div style="margin-top:2rem">
+                    <h2 class="fade-in"><i class="fa-solid fa-list-ul"></i> Assigned Tasks</h2>
+                    <div class="task-list-container">${tasksList}</div>
+                    
+                    <h2 class="fade-in" style="margin-top:2rem"><i class="fa-solid fa-repeat"></i> Active Habits</h2>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem">
+                        ${habitsList}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').appendChild(dash);
+
+            // ANIMATE COUNTERS
+            anime({
+                targets: '.counter',
+                innerHTML: [0, (el) => el.getAttribute('data-target')],
+                round: 1,
+                easing: 'easeOutExpo',
+                duration: 2000
+            });
+
+            // ANIMATE CHARTS
+            // 1. Task Status
+            new Chart(document.getElementById('d-chart-tasks'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [stats.tasksDone, stats.tasksTotal - stats.tasksDone, overdueTasks.length],
+                        backgroundColor: ['#10B981', '#4F46E5', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
+            });
+
+            // 2. Habit Streaks
+            const topHabits = history.habits.slice(0, 5).map(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return { name: h.habits.name, streak: s ? s.current_streak : 0 };
+            });
+            new Chart(document.getElementById('d-chart-habits'), {
+                type: 'bar',
+                data: {
+                    labels: topHabits.map(h => h.name),
+                    datasets: [{
+                        label: 'Streak',
+                        data: topHabits.map(h => h.streak),
+                        backgroundColor: '#F59E0B',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
     </script>
+
 </body>
 
 </html>
