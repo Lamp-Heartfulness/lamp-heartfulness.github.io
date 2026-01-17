@@ -267,6 +267,21 @@
         <div id="view-dashboard-container"></div>
 
 
+        <!-- SHARED CONTEXT HEADER (Hidden by default, shown for specific Task/Habit) -->
+        <div id="context-view" class="glass-card hidden" style="margin-bottom:1.5rem">
+            <div style="display:flex; justify-content:space-between; align-items:start">
+                <div>
+                    <div class="label" id="ctx-title" style="color:var(--primary); margin-bottom:0.5rem">-</div>
+                    <h1 id="ctx-name" style="margin-bottom:0.5rem">-</h1>
+                    <p id="ctx-desc" style="color:var(--text-muted); font-size:0.9rem; max-width:600px">-</p>
+                </div>
+                <div style="text-align:right">
+                    <div class="label" id="ctx-meta-label">-</div>
+                    <div class="value" id="ctx-meta-val" style="font-size:1.1rem">-</div>
+                </div>
+            </div>
+        </div>
+
         <!-- TASK ANALYTICS VIEW -->
         <div id="view-task" class="hidden">
             <div class="metrics-grid fade-in" style="animation-delay: 0.3s">
@@ -505,6 +520,7 @@
         }
 
         async function renderTaskView(assignment, history) {
+            document.getElementById('context-view').classList.remove('hidden');
             document.getElementById('view-task').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-list-check"></i> Task Analytics';
 
@@ -597,6 +613,7 @@
         }
 
         async function renderHabitView(assignment, streak, history) {
+            document.getElementById('context-view').classList.remove('hidden');
             document.getElementById('view-habit').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-repeat"></i> Habit Insights';
 
