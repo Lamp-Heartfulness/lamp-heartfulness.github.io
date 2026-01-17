@@ -418,6 +418,16 @@
         };
 
 
+        // Helper to ensure consistent DD/MM/YYYY format
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return '-';
+            return d.getDate().toString().padStart(2, '0') + '/' +
+                (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
+                d.getFullYear();
+        }
+
         async function loadData() {
             try {
                 // 1. Fetch User
@@ -438,21 +448,22 @@
                     streaks: streaks.data || []
                 };
 
-                // 3. Render Views
+                // 3. Render Views (Mutually Exclusive as per User Request)
                 if (TASK_ID) {
                     const tAssignment = history.tasks.find(t => t.task_id == TASK_ID);
                     await renderTaskView(tAssignment, history);
+                    // Hide dashboard container to be safe
+                    document.getElementById('view-dashboard-container').style.display = 'none';
                 } else if (HABIT_ID) {
                     const hAssignment = history.habits.find(h => h.habit_id == HABIT_ID);
                     const hStreak = history.streaks.find(s => s.habit_id == HABIT_ID);
                     await renderHabitView(hAssignment, hStreak, history);
+                    // Hide dashboard container to be safe
+                    document.getElementById('view-dashboard-container').style.display = 'none';
+                } else {
+                    // ONLY Render Full Dashboard if NO specific ID is present
+                    renderFullDashboard(user, history);
                 }
-
-                // ALWAYS RENDER FULL DASHBOARD BELOW SPECIFIC VIEW
-                // OR if no specific view, just render it.
-                // The requirements say "when clicke on that... show all the analytics...".
-                // So let's render it always as the main view or below the specific context.
-                renderFullDashboard(user, history);
 
 
                 // Show Content
@@ -536,7 +547,7 @@
             document.getElementById('ctx-name').innerText = task.name;
             document.getElementById('ctx-desc').innerText = task.description || 'No description provided.';
             document.getElementById('ctx-meta-label').innerText = "Deadline";
-            document.getElementById('ctx-meta-val').innerText = new Date(task.deadline).toLocaleDateString();
+            document.getElementById('ctx-meta-val').innerText = formatDate(task.deadline);
 
             // Stats
             const isDone = assignment.status === 'completed';
@@ -628,8 +639,8 @@
 
             document.getElementById('ctx-name').innerText = habitName;
             document.getElementById('ctx-desc').innerText = habitDesc;
-            document.getElementById('ctx-meta-label').innerText = "Assigned Since";
-            document.getElementById('ctx-meta-val').innerText = assignment ? new Date(assignment.assigned_at).toLocaleDateString() : '-';
+            document.getElementById('ctx-meta-label').innerText = "Assigned";
+            document.getElementById('ctx-meta-val').innerText = assignment ? formatDate(assignment.assigned_at) : '-';
 
             const curStreak = streak ? streak.current_streak : 0;
             const maxStreak = streak ? streak.longest_streak : 0;
@@ -803,7 +814,7 @@
                         <h2 style="margin:0; color:#EF4444; font-size:1rem"><i class="fa-solid fa-triangle-exclamation"></i> Overdue Tasks (${overdueTasks.length})</h2>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:0.5rem">
-                        ${overdueTasks.map(t => `<div style="font-size:0.9rem; display:flex; justify-content:space-between; padding:0.5rem; background:#FEF2F2; border-radius:6px"><span>${t.tasks.name}</span><span style="font-weight:600; color:#991B1B">Due ${new Date(t.tasks.deadline).toLocaleDateString()}</span></div>`).join('')}
+                        ${overdueTasks.map(t => `<div style="font-size:0.9rem; display:flex; justify-content:space-between; padding:0.5rem; background:#FEF2F2; border-radius:6px"><span>${t.tasks.name}</span><span style="font-weight:600; color:#991B1B">Due ${formatDate(t.tasks.deadline)}</span></div>`).join('')}
                     </div>
                 </div>`;
             }
@@ -844,7 +855,7 @@
                 return `<div class="glass-card stagger-item" style="padding:0.75rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
                     <div>
                         <div style="font-weight:600">${t.tasks.name}</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted)">Due: ${due.toLocaleDateString()}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted)">Due: ${formatDate(t.tasks.deadline)}</div>
                     </div>
                     <span class="badge" style="background:${isDone ? '#10B981' : (isOverdue ? '#EF4444' : '#4F46E5')}; color:white; padding:2px 6px; border-radius:4px; font-size:0.75rem">
                         ${isDone ? 'DONE' : (isOverdue ? 'LATE' : 'PENDING')}
