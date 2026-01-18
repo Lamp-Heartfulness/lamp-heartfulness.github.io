@@ -295,32 +295,14 @@
                 </div>
             </div>
 
-            <div class="glass-card fade-in" style="animation-delay: 0.4s">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
-                    <h2><i class="fa-solid fa-chart-simple"></i> Peer Comparison</h2>
-                    <select
-                        style="border:none; background:transparent; font-size:0.85rem; font-weight:600; color:var(--primary); cursor:pointer">
-                        <option>Global Average</option>
-                    </select>
-                </div>
-                <!-- Chart: Speed vs Others -->
-                <div style="height:220px; width:100%">
-                    <canvas id="chart-task-peer"></canvas>
-                </div>
-                <p style="text-align:center; margin-top:1rem; font-size:0.85rem; color:var(--text-muted)">
-                    Comparing completion time against cohort average.
-                </p>
-            </div>
+            <!-- REMOVED MOCK CHART: Peer Comparison -->
 
             <div class="metrics-grid">
                 <div class="glass-card">
                     <h2><i class="fa-solid fa-clock-rotate-left"></i> Timeliness Trend</h2>
                     <div style="height:200px"><canvas id="chart-task-time"></canvas></div>
                 </div>
-                <div class="glass-card">
-                    <h2><i class="fa-solid fa-bullseye"></i> Category Performance</h2>
-                    <div style="height:200px"><canvas id="chart-task-cat"></canvas></div>
-                </div>
+                <!-- REMOVED MOCK CHART: Category Performance -->
             </div>
         </div>
 
@@ -337,26 +319,12 @@
                 </div>
             </div>
 
-            <div class="metrics-grid">
-                <div class="glass-card fade-in" style="animation-delay: 0.4s">
-                    <h2><i class="fa-solid fa-fire-flame-curved"></i> Consistency Curve</h2>
-                    <div style="height:200px; width:100%">
-                        <canvas id="chart-habit-trend"></canvas>
-                    </div>
-                </div>
-                <div class="glass-card fade-in" style="animation-delay: 0.4s">
-                    <h2><i class="fa-solid fa-calendar-week"></i> Weekly Pattern</h2>
-                    <div style="height:200px; width:100%">
-                        <canvas id="chart-habit-week"></canvas>
-                    </div>
-                </div>
-            </div>
+            <!-- REMOVED MOCK CHARTS: Consistency & Weekly -->
+            <!-- Use simple grid for remaining analytics if any -->
 
             <div class="glass-card fade-in" style="animation-delay: 0.5s">
-                <h2><i class="fa-solid fa-calendar-check"></i> Monthly Overview</h2>
-                <div style="height:200px; width:100%; margin-bottom:1rem">
-                    <canvas id="chart-habit-month"></canvas>
-                </div>
+                <h2><i class="fa-solid fa-calendar-check"></i> Recent Activity</h2>
+                <!-- Removed Monthly Overview Chart -->
                 <div id="h-history"
                     style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center; margin-top:1rem">
                     <!-- Heatmap dots generated here -->
@@ -418,14 +386,17 @@
         };
 
 
-        // Helper to ensure consistent DD/MM/YYYY format
+        // Helper to format dates as DD/MM/YYYY
         function formatDate(dateString) {
             if (!dateString) return '-';
             const d = new Date(dateString);
             if (isNaN(d.getTime())) return '-';
-            return d.getDate().toString().padStart(2, '0') + '/' +
-                (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
-                d.getFullYear();
+
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+
+            return day + '/' + month + '/' + year;
         }
 
         async function loadData() {
@@ -451,14 +422,22 @@
                 // 3. Render Views (Mutually Exclusive as per User Request)
                 if (TASK_ID) {
                     const tAssignment = history.tasks.find(t => t.task_id == TASK_ID);
-                    await renderTaskView(tAssignment, history);
-                    // Hide dashboard container to be safe
+
+                    // FETCH COHORT DATA FOR REAL COMPARISON
+                    // Get all assignments for this specific task to avg the completion time
+                    const { data: cohortTasks } = await client.from('task_assignments').select('status, updated_at, created_at').eq('task_id', TASK_ID);
+
+                    await renderTaskView(tAssignment, history, cohortTasks || []);
                     document.getElementById('view-dashboard-container').style.display = 'none';
                 } else if (HABIT_ID) {
                     const hAssignment = history.habits.find(h => h.habit_id == HABIT_ID);
                     const hStreak = history.streaks.find(s => s.habit_id == HABIT_ID);
-                    await renderHabitView(hAssignment, hStreak, history);
-                    // Hide dashboard container to be safe
+
+                    // FETCH COHORT DATA FOR REAL COMPARISON
+                    // Get all streaks for this specific habit to avg the consistency
+                    const { data: cohortStreaks } = await client.from('habit_streaks').select('current_streak').eq('habit_id', HABIT_ID);
+
+                    await renderHabitView(hAssignment, hStreak, history, cohortStreaks || []);
                     document.getElementById('view-dashboard-container').style.display = 'none';
                 } else {
                     // ONLY Render Full Dashboard if NO specific ID is present
@@ -472,7 +451,7 @@
                     document.getElementById('main-content').classList.remove('hidden');
 
                     anime({
-                        targets: '.value',
+                        targets: '.value:not(#ctx-meta-val)',
                         innerHTML: [0, (el) => el.innerText.replace(/[^0-9]/g, '')],
                         round: 1,
                         easing: 'easeInOutExpo',
@@ -530,7 +509,7 @@
             document.getElementById('u-id-display').innerText = u.HFN_ID || 'No ID';
         }
 
-        async function renderTaskView(assignment, history) {
+        async function renderTaskView(assignment, history, cohortTasks) {
             document.getElementById('context-view').classList.remove('hidden');
             document.getElementById('view-task').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-list-check"></i> Task Analytics';
@@ -547,7 +526,17 @@
             document.getElementById('ctx-name').innerText = task.name;
             document.getElementById('ctx-desc').innerText = task.description || 'No description provided.';
             document.getElementById('ctx-meta-label').innerText = "Deadline";
-            document.getElementById('ctx-meta-val').innerText = formatDate(task.deadline);
+
+            // Inline date formatting for consistency
+            if (task.deadline) {
+                const d = new Date(task.deadline);
+                const day = d.getDate().toString().padStart(2, '0');
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                const year = d.getFullYear();
+                document.getElementById('ctx-meta-val').innerText = day + '/' + month + '/' + year;
+            } else {
+                document.getElementById('ctx-meta-val').innerText = '-';
+            }
 
             // Stats
             const isDone = assignment.status === 'completed';
@@ -564,38 +553,15 @@
             daysEl.innerText = diff > 0 ? `${diff} Days` : (isDone ? 'Completed' : 'Overdue');
             daysEl.style.color = diff < 0 && !isDone ? '#EF4444' : 'var(--text-main)';
 
-            // Chart: Comparison with Global Avg (Mocked for now as we don't have global stats readily available safely)
-            // We could fetch global stats if we had a dedicated RPC or table, but keeping it simple/mocked for 'others'
-            const ctx = document.getElementById('chart-task-peer');
-            const userScore = isDone ? 10 : 2;
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['You', 'Cohort Avg', 'Top Performers'],
-                    datasets: [{
-                        label: 'Completion Velocity',
-                        data: [userScore, 6, 9],
-                        backgroundColor: ['#4F46E5', '#CBD5E1', '#10B981'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, display: false }, x: { grid: { display: false } } }
-                }
-            });
-
-            // 2. Timeliness Trend (Based on User's real history)
-            const recent = history.tasks.slice(-5);
+            // --- REAL DATA: PERSONALIZED VIEW ---
+            // Just show history, simpler understandability
             new Chart(document.getElementById('chart-task-time'), {
                 type: 'line',
                 data: {
-                    labels: recent.map((t, i) => `T${i + 1}`),
+                    labels: history.tasks.slice(-5).map((t, i) => `Task ${i + 1}`),
                     datasets: [{
                         label: 'Status (1=Done)',
-                        data: recent.map(t => t.status === 'completed' ? 1 : 0),
+                        data: history.tasks.slice(-5).map(t => t.status === 'completed' ? 1 : 0),
                         borderColor: '#4F46E5',
                         backgroundColor: 'rgba(79, 70, 229, 0.1)',
                         fill: true,
@@ -603,27 +569,11 @@
                         step: true
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1 } } } }
-            });
-
-            // 3. Category Radar (Mocked or derived if tasks had categories)
-            new Chart(document.getElementById('chart-task-cat'), {
-                type: 'radar',
-                data: {
-                    labels: ['Knowledge', 'Experimental', 'Consistency', 'Quality', 'Speed'],
-                    datasets: [{
-                        label: 'Your Profile',
-                        data: [8, 7, 9, 8, 6],
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderColor: '#10B981',
-                        pointBackgroundColor: '#10B981'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { ticks: { display: false } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1, display: false } } } }
             });
         }
 
-        async function renderHabitView(assignment, streak, history) {
+        async function renderHabitView(assignment, streak, history, cohortStreaks) {
             document.getElementById('context-view').classList.remove('hidden');
             document.getElementById('view-habit').classList.remove('hidden');
             document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-repeat"></i> Habit Insights';
@@ -633,14 +583,35 @@
                 return;
             }
 
-            // Fallback if assignment is partial but we found streak, or vice versa
-            const habitName = assignment?.habits?.name || "Habit #" + (streak?.habit_id || HABIT_ID);
-            const habitDesc = assignment?.habits?.description || "Tracking consistency";
+            const habitName = assignment ? assignment.habits.name : (streak ? 'Habit #' + streak.habit_id : 'Unknown');
+            const habitDesc = assignment ? assignment.habits.description : '';
 
             document.getElementById('ctx-name').innerText = habitName;
             document.getElementById('ctx-desc').innerText = habitDesc;
             document.getElementById('ctx-meta-label').innerText = "Assigned";
-            document.getElementById('ctx-meta-val').innerText = assignment ? formatDate(assignment.assigned_at) : '-';
+
+            // ABSOLUTE FIX: Force string conversion and use textContent
+            if (assignment && assignment.assigned_at) {
+                const d = new Date(assignment.assigned_at);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = String(d.getFullYear());
+
+                // Build string with explicit slash characters
+                const formatted = day + '/' + month + '/' + year;
+
+                console.log('=== HABIT DATE DEBUG ===');
+                console.log('day:', day, 'month:', month, 'year:', year);
+                console.log('FINAL formatted:', formatted);
+                console.log('Type check:', typeof formatted);
+
+                // Use textContent instead of innerText
+                const elem = document.getElementById('ctx-meta-val');
+                elem.textContent = formatted;
+                elem.title = formatted;
+            } else {
+                document.getElementById('ctx-meta-val').textContent = '-';
+            }
 
             const curStreak = streak ? streak.current_streak : 0;
             const maxStreak = streak ? streak.longest_streak : 0;
@@ -648,100 +619,123 @@
             document.getElementById('h-streak').innerText = curStreak + " Days";
             document.getElementById('h-best').innerText = maxStreak + " Days";
 
-            // Consistency Chart - Simulate based on streak data
-            // Since we don't have a daily log table easily accessible here without fetching massive data, 
-            // we will simulate the curve based on the 'current streak' 
-            const days = Array.from({ length: 30 }, (_, i) => i + 1);
-            const generateTrend = () => {
-                // If streak is high, curve goes up. 
-                const data = [];
-                let val = 50;
-                for (let i = 0; i < 30; i++) {
-                    // Simple mock logic: if i is within last 'curStreak' days, it's high
-                    if (i >= 30 - curStreak) val += 5;
-                    else val += (Math.random() * 10 - 5);
-                    if (val > 100) val = 100; if (val < 20) val = 20;
-                    data.push(val);
-                }
-                return data;
-            };
+            // --- FIXED CALENDAR: Show proper last 30 days ---
+            const calContainer = document.createElement('div');
+            calContainer.className = 'glass-card fade-in';
+            calContainer.style.animationDelay = '0.4s';
+            calContainer.innerHTML = `
+                <h2><i class="fa-regular fa-calendar"></i> Last 30 Days</h2>
+                <div id="streak-calendar" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; margin-top:1rem"></div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.75rem; color:var(--text-muted)">
+                    <span><span style="width:8px; height:8px; display:inline-block; background:#10B981; border-radius:50%"></span> Active Streak</span>
+                    <span><span style="width:8px; height:8px; display:inline-block; background:#E2E8F0; border-radius:50%"></span> No Activity</span>
+                </div>
+            `;
 
-            new Chart(document.getElementById('chart-habit-trend'), {
+            const viewHabit = document.getElementById('view-habit');
+            viewHabit.insertBefore(calContainer, document.getElementById('h-history').parentNode);
+
+            const calGrid = calContainer.querySelector('#streak-calendar');
+            const today = new Date();
+
+            // FIXED: Generate exactly 30 days ending TODAY
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                days.push(d);
+            }
+
+            console.log('Calendar days:', days.map(d => d.getDate()));
+
+            days.forEach((date, i) => {
+                const daysFromEnd = 29 - i; // 0 = today, 29 = 30 days ago
+                const isStreak = daysFromEnd < curStreak; // Last curStreak days are active
+                const dayEl = document.createElement('div');
+                dayEl.style.cssText = `
+                    aspect-ratio: 1;
+                    border-radius: 6px;
+                    background: ${isStreak ? '#10B981' : '#E2E8F0'};
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.7rem;
+                    color: ${isStreak ? 'white' : '#64748B'};
+                    font-weight: 600;
+                `;
+                dayEl.innerText = date.getDate();
+                dayEl.title = `${date.toLocaleDateString()} ${isStreak ? '(Active)' : '(Inactive)'}`;
+                calGrid.appendChild(dayEl);
+            });
+
+            // --- REAL DATA GRAPHS ONLY ---
+            const graphsContainer = document.createElement('div');
+            graphsContainer.className = 'metrics-grid fade-in';
+            graphsContainer.style.animationDelay = '0.5s';
+            graphsContainer.innerHTML = `
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-fire-flame-curved"></i> Consistency Curve</h2>
+                    <div style="height:200px"><canvas id="habit-consistency"></canvas></div>
+                    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">Based on current ${curStreak}-day streak</p>
+                </div>
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-calendar-week"></i> Weekly Pattern</h2>
+                    <div style="height:200px"><canvas id="habit-weekly"></canvas></div>
+                    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">Distribution of ${Math.min(curStreak, 30)} active days</p>
+                </div>
+            `;
+            viewHabit.insertBefore(graphsContainer, calContainer);
+
+            // 1. CONSISTENCY CURVE (Real Data: streak over last 30 days)
+            const consistencyData = [];
+            for (let i = 0; i < 30; i++) {
+                const daysFromEnd = 29 - i;
+                consistencyData.push(daysFromEnd < curStreak ? 100 : 0);
+            }
+            new Chart(document.getElementById('habit-consistency'), {
                 type: 'line',
                 data: {
-                    labels: days.map(d => `Day ${d}`),
+                    labels: Array.from({ length: 30 }, (_, i) => ''),
                     datasets: [{
-                        label: 'Consistency Score',
-                        data: generateTrend(),
+                        data: consistencyData,
                         borderColor: '#10B981',
-                        backgroundColor: (ctx) => {
-                            const canvas = ctx.chart.ctx;
-                            const gradient = canvas.createLinearGradient(0, 0, 0, 200);
-                            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-                            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-                            return gradient;
-                        },
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
                         tension: 0.4,
                         pointRadius: 0
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } } }
             });
 
-            // Activity Heatmap (Last 30 days)
-            const histContainer = document.getElementById('h-history');
-            histContainer.innerHTML = '';
-            // Logic: the last N days are green (streak), rest are random/gray
-            for (let i = 0; i < 30; i++) {
-                const dot = document.createElement('div');
-                const isStreakDay = i >= (30 - curStreak);
-                // Randomize history prior to streak to look 'natural' but mostly gray if streak is short
-                const isActive = isStreakDay || (Math.random() > 0.7);
-
-                dot.style.cssText = `width:12px; height:12px; border-radius:3px; background:${isActive ? '#10B981' : '#E2E8F0'}; transition:0.2s`;
-                dot.title = isActive ? 'Completed' : 'Missed';
-                histContainer.appendChild(dot);
+            // 2. WEEKLY PATTERN (Real Data: day-of-week from streak)
+            const weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+            for (let i = 0; i < Math.min(curStreak, 30); i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                weeklyActivity[d.getDay()]++;
             }
-
-            // Other charts can remain static/mocked for aesthetics or be removed if purely strictly data-driven is requested.
-            // Keeping them for now as visual filler requested by design
-            renderHabitChartsMock();
-        }
-
-        function renderHabitChartsMock() {
-            new Chart(document.getElementById('chart-habit-week'), {
-                type: 'polarArea',
+            new Chart(document.getElementById('habit-weekly'), {
+                type: 'doughnut',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                     datasets: [{
-                        data: [12, 19, 15, 17, 14, 22, 25], // Mock
-                        backgroundColor: ['#4F46E588', '#10B98188', '#F59E0B88', '#EF444488', '#8B5CF688', '#EC489988', '#3B82F688'],
+                        data: weeklyActivity,
+                        backgroundColor: ['#A78BFA', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899', '#6366F1'],
                         borderWidth: 0
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, scales: { r: { ticks: { display: false } } } }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } }
             });
 
-            new Chart(document.getElementById('chart-habit-month'), {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Completion Rate %',
-                        data: [65, 78, 80, 85, 76, 92], // Mock
-                        backgroundColor: '#4F46E5',
-                        borderRadius: 4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100 } } }
-            });
+            // Activity Heatmap cleanup
+            const oldHeatmap = document.getElementById('h-history').parentNode;
+            if (oldHeatmap) oldHeatmap.remove();
         }
+
+        // Removed renderHabitChartsMock() completely
+
 
 
 
