@@ -1401,37 +1401,62 @@ GRANT EXECUTE ON FUNCTION admin_delete_user(uuid) TO service_role;
             reader.readAsText(file);
         }
         async function deleteUser(id) {
-            if (!confirm("Are you sure you want to delete this user? This will remove them from the system entirely.")) return;
+            if (!confirm("Are you sure you want to delete this user? This will remove them and ALL their related data (assignments, streaks, etc.) from the system entirely.")) return;
 
-            // 1. Try to delete via RPC (Secure way to delete from Auth)
-            const { error: rpcError } = await client.rpc('admin_delete_user', { target_id: id });
+            try {
+                // 1. Delete all related records first (cascade delete)
+                console.log("Deleting related records for user:", id);
 
-            if (rpcError) {
-                console.warn("RPC Error Details:", rpcError);
+                // Delete habit assignments where user is protege
+                await client.from('habit_assignments').delete().eq('protege_id', id);
 
-                // IGNORE "Unexpected end of JSON" which happens with VOID functions sometimes
-                // If the error suggests it worked but just failed to parse response, treat as success
-                if (rpcError.message && (rpcError.message.includes("JSON") || rpcError.code === "PGRST204")) {
-                    console.log("RPC likely succeeded (Void return), refreshing...");
-                    await refreshData();
-                    return;
-                }
+                // Delete task assignments where user is protege
+                await client.from('task_assignments').delete().eq('protege_id', id);
 
-                console.warn("RPC truly failed, falling back to public table delete.");
+                // Delete chaperone-protege links (user could be either)
+                await client.from('chaperone_protege').delete().eq('protege_id', id);
+                await client.from('chaperone_protege').delete().eq('chaperone_id', id);
 
-                // 2. Fallback: Delete from Public Table only
-                const { error: tableError } = await client.from('Users').delete().eq('id', id);
-                if (tableError) {
-                    alert("Delete Failed: " + tableError.message);
+                // Delete habit streaks
+                await client.from('habit_streaks').delete().eq('protege_id', id);
+
+                // Delete questions asked by user
+                await client.from('questions').delete().eq('user_id', id);
+
+                console.log("Related records deleted. Now deleting user...");
+
+                // 2. Try to delete via RPC (deletes from both Auth and Users table)
+                const { error: rpcError } = await client.rpc('admin_delete_user', { target_id: id });
+
+                if (rpcError) {
+                    console.warn("RPC Error Details:", rpcError);
+
+                    // IGNORE "Unexpected end of JSON" which happens with VOID functions sometimes
+                    if (rpcError.message && (rpcError.message.includes("JSON") || rpcError.code === "PGRST204")) {
+                        console.log("RPC likely succeeded (Void return), refreshing...");
+                        alert("User successfully deleted!");
+                        await refreshData();
+                        return;
+                    }
+
+                    console.warn("RPC failed, falling back to public table delete only.");
+
+                    // 3. Fallback: Delete from Public Table only (Auth user remains but can't access)
+                    const { error: tableError } = await client.from('Users').delete().eq('id', id);
+                    if (tableError) {
+                        alert("Delete Failed: " + tableError.message);
+                    } else {
+                        alert("User deleted from database. Note: To fully remove from Auth, run admin_delete_user SQL function.");
+                        await refreshData();
+                    }
                 } else {
-                    // Per user request: Stop showing the setup modal. Just confirm success.
-                    alert("User successfully deleted.");
+                    // Success (error is null)
+                    alert("User successfully deleted from both database and authentication!");
                     await refreshData();
                 }
-            } else {
-                // Success (error is null)
-                alert("User successfully deleted.");
-                await refreshData();
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("Delete failed: " + err.message);
             }
         }
         async function handleCreateTask(e) { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target)); if (DB.users[0]) d.created_by = DB.users[0].id; await safeInsert('tasks', d); }
