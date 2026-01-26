@@ -550,27 +550,165 @@
             const due = new Date(task.deadline);
             const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
             const daysEl = document.getElementById('t-days');
-            daysEl.innerText = diff > 0 ? `${diff} Days` : (isDone ? 'Completed' : 'Overdue');
-            daysEl.style.color = diff < 0 && !isDone ? '#EF4444' : 'var(--text-main)';
 
-            // --- REAL DATA: PERSONALIZED VIEW ---
-            // Just show history, simpler understandability
+            if (isDone) {
+                daysEl.innerText = "Completed";
+                daysEl.style.color = "var(--accent)";
+            } else {
+                daysEl.innerText = diff > 0 ? `${diff} Days Left` : 'Overdue';
+                daysEl.style.color = diff < 0 ? '#EF4444' : 'var(--text-main)';
+            }
+
+
+            // --- COHORT ANALYSIS (PEER COMPARISON) ---
+            // Calculate stats from cohortTasks
+            const cohortStats = { completed: 0, pending: 0, overdue: 0, total: cohortTasks.length };
+            const now = new Date();
+
+            cohortTasks.forEach(t => {
+                if (t.status === 'completed') {
+                    cohortStats.completed++;
+                } else {
+                    // Check if overdue based on THIS task's deadline (assuming same deadline for all for this task ID)
+                    if (new Date(task.deadline) < now) {
+                        cohortStats.overdue++;
+                    } else {
+                        cohortStats.pending++;
+                    }
+                }
+            });
+
+            // Update DOM or add new elements for Cohort
+            // We'll replace the removed mock chart logic with real charts
+
+            // Clear existing charts if any (simple way: innerHTML of container)
+            // But we have structure in HTML: metrics-grid -> glass-card -> chart
+
+            // 1. TIMELINESS TREND (Your History)
+            // Shows your status on last 10 tasks to see if you are generally on time
+            const last10Tasks = history.tasks.slice(-10);
             new Chart(document.getElementById('chart-task-time'), {
                 type: 'line',
                 data: {
-                    labels: history.tasks.slice(-5).map((t, i) => `Task ${i + 1}`),
+                    labels: last10Tasks.map((t, i) => i + 1), // Simple generic labels
                     datasets: [{
-                        label: 'Status (1=Done)',
-                        data: history.tasks.slice(-5).map(t => t.status === 'completed' ? 1 : 0),
+                        label: 'Task Status (1=Done)',
+                        data: last10Tasks.map(t => t.status === 'completed' ? 1 : 0),
                         borderColor: '#4F46E5',
                         backgroundColor: 'rgba(79, 70, 229, 0.1)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.3,
                         step: true
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1, display: false } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (ctx) => `Task: ${last10Tasks[ctx[0].dataIndex].tasks.name}`,
+                                label: (ctx) => ctx.raw === 1 ? 'Completed' : 'Pend/Overdue'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { ticks: { stepSize: 1, display: false }, min: 0, max: 1.2 },
+                        x: { display: false }
+                    }
+                }
             });
+
+            // 2. COHORT COMPARISON (New Chart)
+            // We need to inject the HTML for this since it was removed/placeholder
+            const viewTask = document.getElementById('view-task');
+            // Check if we already added it (to avoid dupes on re-render if that happens)
+            let cohortContainer = document.getElementById('cohort-chart-container');
+
+            if (!cohortContainer) {
+                cohortContainer = document.createElement('div');
+                cohortContainer.id = 'cohort-chart-container';
+                cohortContainer.className = 'glass-card fade-in';
+                cohortContainer.style.animationDelay = '0.4s';
+                cohortContainer.innerHTML = `
+                    <h2><i class="fa-solid fa-users-viewfinder"></i> Peer Comparison</h2>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem">How others are doing on this task</p>
+                    <div style="height:200px"><canvas id="chart-cohort"></canvas></div>
+                `;
+                // Append after metrics grid
+                const grids = viewTask.querySelectorAll('.metrics-grid');
+                if (grids.length > 0) {
+                    // Insert after the graph grid
+                    viewTask.insertBefore(cohortContainer, grids[grids.length - 1].nextSibling);
+                } else {
+                    viewTask.appendChild(cohortContainer);
+                }
+            }
+
+            new Chart(document.getElementById('chart-cohort'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [cohortStats.completed, cohortStats.pending, cohortStats.overdue],
+                        backgroundColor: ['#10B981', '#E2E8F0', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // 3. COMPLETION SPEED (If user finished)
+            if (isDone && assignment.updated_at) {
+                const assigned = new Date(assignment.created_at);
+                const finished = new Date(assignment.updated_at);
+                const myDays = Math.max(0, Math.ceil((finished - assigned) / (1000 * 60 * 60 * 24)));
+
+                // Calc avg for completed cohort
+                let totalDays = 0;
+                let count = 0;
+                cohortTasks.forEach(t => {
+                    if (t.status === 'completed' && t.updated_at) {
+                        const a = new Date(t.created_at);
+                        const f = new Date(t.updated_at);
+                        totalDays += Math.max(0, Math.ceil((f - a) / (1000 * 60 * 60 * 24)));
+                        count++;
+                    }
+                });
+                const avgDays = count > 0 ? (totalDays / count).toFixed(1) : 0;
+
+                // Add Metric Box
+                const speedBox = document.createElement('div');
+                speedBox.className = 'glass-card fade-in';
+                speedBox.style.marginTop = '1.5rem';
+                speedBox.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <div class="label">Your Speed</div>
+                            <div class="value" style="color:var(--primary)">${myDays} <span style="font-size:1rem; font-weight:500; color:var(--text-main)">days</span></div>
+                        </div>
+                         <div style="text-align:right">
+                            <div class="label">Avg Peer Speed</div>
+                            <div class="value">${avgDays} <span style="font-size:1rem; font-weight:500; color:var(--text-main)">days</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:0.5rem; height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden">
+                        <div style="width:${Math.min(100, (myDays / avgDays) * 50)}%; height:100%; background:var(--primary)"></div>
+                    </div>
+                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">
+                        ${myDays < avgDays ? 'Faster than average!' : 'Slightly slower than average.'}
+                    </div>
+                `;
+                viewTask.appendChild(speedBox);
+            }
         }
 
         async function renderHabitView(assignment, streak, history, cohortStreaks) {
