@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics | Heartfulness</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- Confetti for Celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --accent: #10B981;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* RESET */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* UTILS */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        /* Hover Effect for Cards */
+        .glass-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Staggered List Animation Logic */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* TYPOGRAPHY */
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.2rem;
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* PROFILE HEADER */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-lg {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            /* Avatar Pulse */
+            animation: pulse-glow 3s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            }
+        }
+
+
+        /* METRICS GRID */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-box {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        /* LOADER */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <div style="margin-top:1rem; font-weight:500; font-size:0.9rem; color:var(--text-muted)">Loading Analytics...
+        </div>
+    </div>
+
+    <div class="container hidden" id="main-content">
+        <!-- USER HEADER -->
+        <div class="profile-header fade-in" style="animation-delay: 0.1s">
+            <div class="avatar-lg" id="u-avatar">?</div>
+            <div>
+                <div class="label" style="margin-bottom:0">Protégé Profile</div>
+                <h1 id="u-name" style="font-size:1.8rem">Loading...</h1>
+                <div style="font-size:0.9rem; color:var(--text-muted); display:flex; gap:0.5rem; align-items:center">
+                    <i class="fa-solid fa-location-dot"></i> <span id="u-loc">-</span>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem">
+                    ID: <code id="u-id-display" style="background:#f1f5f9; padding:2px 6px; border-radius:4px">-</code>
+                </div>
+            </div>
+            <div style="flex:1"></div>
+            <!-- Dynamic Badge -->
+            <div id="u-badge"
+                style="padding:0.4rem 0.8rem; background:white; border-radius:99px; font-weight:600; font-size:0.8rem; box-shadow:var(--shadow-sm); color:var(--primary)">
+                Heartfulness
+            </div>
+        </div>
+
+
+
+        <!-- DASHBOARD CONTAINER (Filled Dynamically) -->
+        <div id="view-dashboard-container"></div>
+
+
+        <!-- SHARED CONTEXT HEADER (Hidden by default, shown for specific Task/Habit) -->
+        <div id="context-view" class="glass-card hidden" style="margin-bottom:1.5rem">
+            <div style="display:flex; justify-content:space-between; align-items:start">
+                <div>
+                    <div class="label" id="ctx-title" style="color:var(--primary); margin-bottom:0.5rem">-</div>
+                    <h1 id="ctx-name" style="margin-bottom:0.5rem">-</h1>
+                    <p id="ctx-desc" style="color:var(--text-muted); font-size:0.9rem; max-width:600px">-</p>
+                </div>
+                <div style="text-align:right">
+                    <div class="label" id="ctx-meta-label">-</div>
+                    <div class="value" id="ctx-meta-val" style="font-size:1.1rem">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TASK ANALYTICS VIEW -->
+        <div id="view-task" class="hidden">
+            <div class="metrics-grid fade-in" style="animation-delay: 0.3s">
+                <div class="metric-box">
+                    <div class="label">Status</div>
+                    <div class="value" id="t-status" style="text-transform:capitalize">-</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">Days Remaining</div>
+                    <div class="value" id="t-days">-</div>
+                </div>
+            </div>
+
+            <!-- REMOVED MOCK CHART: Peer Comparison -->
+
+            <div class="metrics-grid">
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Timeliness Trend</h2>
+                    <div style="height:200px"><canvas id="chart-task-time"></canvas></div>
+                </div>
+                <!-- REMOVED MOCK CHART: Category Performance -->
+            </div>
+        </div>
+
+        <!-- HABIT ANALYTICS VIEW -->
+        <div id="view-habit" class="hidden">
+            <div class="metrics-grid fade-in" style="animation-delay: 0.3s">
+                <div class="metric-box">
+                    <div class="label">Current Streak</div>
+                    <div class="value" id="h-streak" style="color:var(--primary)">-</div>
+                </div>
+                <div class="metric-box">
+                    <div class="label">Best Streak</div>
+                    <div class="value" id="h-best" style="color:var(--accent)">-</div>
+                </div>
+            </div>
+
+            <!-- REMOVED MOCK CHARTS: Consistency & Weekly -->
+            <!-- Use simple grid for remaining analytics if any -->
+
+            <div class="glass-card fade-in" style="animation-delay: 0.5s">
+                <h2><i class="fa-solid fa-calendar-check"></i> Recent Activity</h2>
+                <!-- Removed Monthly Overview Chart -->
+                <div id="h-history"
+                    style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center; margin-top:1rem">
+                    <!-- Heatmap dots generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        // CONFIG
+        const SB_URL = 'https://gmrqcoisfoghljwqiuys.supabase.co';
+        const SB_KEY = 'sb_publishable_32HScVBfGlv4rNKr8kx-1A_dOyIPLEV';
+        const client = window.supabase.createClient(SB_URL, SB_KEY);
+
+        // PARAMS PARSING (Supports Query ?id=... OR Hash #/u/userId/h/habitId)
+        function getParams() {
+            const hash = window.location.hash; // e.g., "#/u/123/h/456"
+            let userId = null, taskId = null, habitId = null;
+
+            if (hash && hash.includes('/')) {
+                const parts = hash.replace('#', '').split('/').filter(p => p);
+                // Expected: ["u", "UID", "h", "HID"] or ["u", "UID", "t", "TID"]
+                const uIdx = parts.indexOf('u');
+                const tIdx = parts.indexOf('t');
+                const hIdx = parts.indexOf('h');
+
+                if (uIdx !== -1 && parts[uIdx + 1]) userId = parts[uIdx + 1];
+                if (tIdx !== -1 && parts[tIdx + 1]) taskId = parts[tIdx + 1];
+                if (hIdx !== -1 && parts[hIdx + 1]) habitId = parts[hIdx + 1];
+            } else {
+                // Fallback to Query Params
+                const p = new URLSearchParams(window.location.search);
+                userId = p.get('userId');
+                taskId = p.get('taskId');
+                habitId = p.get('habitId');
+            }
+            return { userId, taskId, habitId };
+        }
+
+        const { userId: USER_ID, taskId: TASK_ID, habitId: HABIT_ID } = getParams();
+
+        // INIT
+        window.onload = async () => {
+            if (!USER_ID) {
+                document.getElementById('loader').innerHTML = '<div style="color:red; font-weight:600">No User ID provided in URL</div>';
+                return;
+            }
+            // Add Anime.js initial loader pulse
+            anime({
+                targets: '.spinner',
+                scale: [1, 1.2],
+                direction: 'alternate',
+                loop: true,
+                duration: 800,
+                easing: 'easeInOutQuad'
+            });
+            await loadData();
+        };
+
+
+        // Helper to format dates as DD/MM/YYYY
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return '-';
+
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+
+            return day + '/' + month + '/' + year;
+        }
+
+        async function loadData() {
+            try {
+                // 1. Fetch User
+                const { data: user, error: uErr } = await client.from('Users').select('*').eq('id', USER_ID).single();
+                if (uErr) throw new Error("User not found: " + uErr.message);
+                renderUser(user);
+
+                // 2. Fetch Assignments & Streaks
+                const [taskAssigns, habitAssigns, streaks] = await Promise.all([
+                    client.from('task_assignments').select('*, tasks(*)').eq('protege_id', USER_ID),
+                    client.from('habit_assignments').select('*, habits(*)').eq('protege_id', USER_ID),
+                    client.from('habit_streaks').select('*').eq('protege_id', USER_ID)
+                ]);
+
+                const history = {
+                    tasks: taskAssigns.data || [],
+                    habits: habitAssigns.data || [],
+                    streaks: streaks.data || []
+                };
+
+                // 3. Render Views (Mutually Exclusive as per User Request)
+                if (TASK_ID) {
+                    const tAssignment = history.tasks.find(t => t.task_id == TASK_ID);
+
+                    // FETCH COHORT DATA FOR REAL COMPARISON
+                    // Get all assignments for this specific task to avg the completion time
+                    const { data: cohortTasks } = await client.from('task_assignments').select('status, updated_at, created_at').eq('task_id', TASK_ID);
+
+                    await renderTaskView(tAssignment, history, cohortTasks || []);
+                    document.getElementById('view-dashboard-container').style.display = 'none';
+                } else if (HABIT_ID) {
+                    const hAssignment = history.habits.find(h => h.habit_id == HABIT_ID);
+                    const hStreak = history.streaks.find(s => s.habit_id == HABIT_ID);
+
+                    // FETCH COHORT DATA FOR REAL COMPARISON
+                    // Get all streaks for this specific habit to avg the consistency
+                    const { data: cohortStreaks } = await client.from('habit_streaks').select('current_streak').eq('habit_id', HABIT_ID);
+
+                    await renderHabitView(hAssignment, hStreak, history, cohortStreaks || []);
+                    document.getElementById('view-dashboard-container').style.display = 'none';
+                } else {
+                    // ONLY Render Full Dashboard if NO specific ID is present
+                    renderFullDashboard(user, history);
+                }
+
+
+                // Show Content
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('main-content').classList.remove('hidden');
+
+                    anime({
+                        targets: '.value:not(#ctx-meta-val)',
+                        innerHTML: [0, (el) => el.innerText.replace(/[^0-9]/g, '')],
+                        round: 1,
+                        easing: 'easeInOutExpo',
+                        duration: 1500
+                    });
+
+                    // Fancy Staggered Entrance
+                    anime({
+                        targets: '.glass-card, .metric-box',
+                        opacity: [0, 1],
+                        translateY: [50, 0],
+                        delay: anime.stagger(150),
+                        easing: 'spring(1, 80, 10, 0)'
+                    });
+
+                    // Floating Animation for Metric Boxes
+                    anime({
+                        targets: '.metric-box',
+                        translateY: [0, -5],
+                        direction: 'alternate',
+                        loop: true,
+                        easing: 'easeInOutSine',
+                        duration: 2000,
+                        delay: anime.stagger(200)
+                    });
+
+                    // Stagger Load List Items
+                    anime({
+                        targets: '.stagger-item',
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        delay: anime.stagger(100, { start: 500 }),
+                        easing: 'easeOutQuad'
+                    });
+
+
+                }, 500);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loader').innerHTML = `<div style="text-align:center; color:#EF4444; padding:2rem">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:2rem; margin-bottom:1rem"></i><br>
+                    <strong>Unable to load analytics</strong><br>
+                    <span style="font-size:0.9rem; color:#64748B">${err.message}</span>
+                </div>`;
+            }
+        }
+
+        function renderUser(u) {
+            document.getElementById('u-name').innerText = u.Name || 'Unknown User';
+            document.getElementById('u-loc').innerText = u.location || 'Unknown Location';
+            const initials = u.Name ? u.Name.substring(0, 2).toUpperCase() : '??';
+            document.getElementById('u-avatar').innerText = initials;
+            document.getElementById('u-badge').innerText = (u.role || 'User').toUpperCase();
+            document.getElementById('u-id-display').innerText = u.HFN_ID || 'No ID';
+        }
+
+        async function renderTaskView(assignment, history, cohortTasks) {
+            document.getElementById('context-view').classList.remove('hidden');
+            document.getElementById('view-task').classList.remove('hidden');
+            document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-list-check"></i> Task Analytics';
+
+            if (!assignment) {
+                document.getElementById('ctx-name').innerText = "Task Not Found";
+                document.getElementById('ctx-desc').innerText = "This task might not be assigned to you.";
+                return;
+            }
+
+            const task = assignment.tasks;
+
+            // Render Info
+            document.getElementById('ctx-name').innerText = task.name;
+            document.getElementById('ctx-desc').innerText = task.description || 'No description provided.';
+            document.getElementById('ctx-meta-label').innerText = "Deadline";
+
+            // Inline date formatting for consistency
+            if (task.deadline) {
+                const d = new Date(task.deadline);
+                const day = d.getDate().toString().padStart(2, '0');
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                const year = d.getFullYear();
+                document.getElementById('ctx-meta-val').innerText = day + '/' + month + '/' + year;
+            } else {
+                document.getElementById('ctx-meta-val').innerText = '-';
+            }
+
+            // Stats
+            const isDone = assignment.status === 'completed';
+            const statusEl = document.getElementById('t-status');
+            statusEl.innerText = assignment.status.toUpperCase();
+            statusEl.style.color = isDone ? 'var(--accent)' : 'var(--text-main)';
+
+            if (isDone) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+            const today = new Date();
+            const due = new Date(task.deadline);
+            const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+            const daysEl = document.getElementById('t-days');
+            daysEl.innerText = diff > 0 ? `${diff} Days` : (isDone ? 'Completed' : 'Overdue');
+            daysEl.style.color = diff < 0 && !isDone ? '#EF4444' : 'var(--text-main)';
+
+            // --- REAL DATA: PERSONALIZED VIEW ---
+            // Just show history, simpler understandability
+            new Chart(document.getElementById('chart-task-time'), {
+                type: 'line',
+                data: {
+                    labels: history.tasks.slice(-5).map((t, i) => `Task ${i + 1}`),
+                    datasets: [{
+                        label: 'Status (1=Done)',
+                        data: history.tasks.slice(-5).map(t => t.status === 'completed' ? 1 : 0),
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        step: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1, display: false } } } }
+            });
+        }
+
+        async function renderHabitView(assignment, streak, history, cohortStreaks) {
+            document.getElementById('context-view').classList.remove('hidden');
+            document.getElementById('view-habit').classList.remove('hidden');
+            document.getElementById('ctx-title').innerHTML = '<i class="fa-solid fa-repeat"></i> Habit Insights';
+
+            if (!assignment && !streak) {
+                document.getElementById('ctx-name').innerText = "Habit Not Found";
+                return;
+            }
+
+            const habitName = assignment ? assignment.habits.name : (streak ? 'Habit #' + streak.habit_id : 'Unknown');
+            const habitDesc = assignment ? assignment.habits.description : '';
+
+            document.getElementById('ctx-name').innerText = habitName;
+            document.getElementById('ctx-desc').innerText = habitDesc;
+            document.getElementById('ctx-meta-label').innerText = "Assigned";
+
+            // ABSOLUTE FIX: Force string conversion and use textContent
+            if (assignment && assignment.assigned_at) {
+                const d = new Date(assignment.assigned_at);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = String(d.getFullYear());
+
+                // Build string with explicit slash characters
+                const formatted = day + '/' + month + '/' + year;
+
+                console.log('=== HABIT DATE DEBUG ===');
+                console.log('day:', day, 'month:', month, 'year:', year);
+                console.log('FINAL formatted:', formatted);
+                console.log('Type check:', typeof formatted);
+
+                // Use textContent instead of innerText
+                const elem = document.getElementById('ctx-meta-val');
+                elem.textContent = formatted;
+                elem.title = formatted;
+            } else {
+                document.getElementById('ctx-meta-val').textContent = '-';
+            }
+
+            const curStreak = streak ? streak.current_streak : 0;
+            const maxStreak = streak ? streak.longest_streak : 0;
+
+            document.getElementById('h-streak').innerText = curStreak + " Days";
+            document.getElementById('h-best').innerText = maxStreak + " Days";
+
+            // --- FIXED CALENDAR: Show proper last 30 days ---
+            const calContainer = document.createElement('div');
+            calContainer.className = 'glass-card fade-in';
+            calContainer.style.animationDelay = '0.4s';
+            calContainer.innerHTML = `
+                <h2><i class="fa-regular fa-calendar"></i> Last 30 Days</h2>
+                <div id="streak-calendar" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; margin-top:1rem"></div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.75rem; color:var(--text-muted)">
+                    <span><span style="width:8px; height:8px; display:inline-block; background:#10B981; border-radius:50%"></span> Active Streak</span>
+                    <span><span style="width:8px; height:8px; display:inline-block; background:#E2E8F0; border-radius:50%"></span> No Activity</span>
+                </div>
+            `;
+
+            const viewHabit = document.getElementById('view-habit');
+            viewHabit.insertBefore(calContainer, document.getElementById('h-history').parentNode);
+
+            const calGrid = calContainer.querySelector('#streak-calendar');
+            const today = new Date();
+
+            // FIXED: Generate exactly 30 days ending TODAY
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                days.push(d);
+            }
+
+            console.log('Calendar days:', days.map(d => d.getDate()));
+
+            days.forEach((date, i) => {
+                const daysFromEnd = 29 - i; // 0 = today, 29 = 30 days ago
+                const isStreak = daysFromEnd < curStreak; // Last curStreak days are active
+                const dayEl = document.createElement('div');
+                dayEl.style.cssText = `
+                    aspect-ratio: 1;
+                    border-radius: 6px;
+                    background: ${isStreak ? '#10B981' : '#E2E8F0'};
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.7rem;
+                    color: ${isStreak ? 'white' : '#64748B'};
+                    font-weight: 600;
+                `;
+                dayEl.innerText = date.getDate();
+                dayEl.title = `${date.toLocaleDateString()} ${isStreak ? '(Active)' : '(Inactive)'}`;
+                calGrid.appendChild(dayEl);
+            });
+
+            // --- REAL DATA GRAPHS ONLY ---
+            const graphsContainer = document.createElement('div');
+            graphsContainer.className = 'metrics-grid fade-in';
+            graphsContainer.style.animationDelay = '0.5s';
+            graphsContainer.innerHTML = `
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-fire-flame-curved"></i> Consistency Curve</h2>
+                    <div style="height:200px"><canvas id="habit-consistency"></canvas></div>
+                    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">Based on current ${curStreak}-day streak</p>
+                </div>
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-calendar-week"></i> Weekly Pattern</h2>
+                    <div style="height:200px"><canvas id="habit-weekly"></canvas></div>
+                    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">Distribution of ${Math.min(curStreak, 30)} active days</p>
+                </div>
+            `;
+            viewHabit.insertBefore(graphsContainer, calContainer);
+
+            // 1. CONSISTENCY CURVE (Real Data: streak over last 30 days)
+            const consistencyData = [];
+            for (let i = 0; i < 30; i++) {
+                const daysFromEnd = 29 - i;
+                consistencyData.push(daysFromEnd < curStreak ? 100 : 0);
+            }
+            new Chart(document.getElementById('habit-consistency'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 30 }, (_, i) => ''),
+                    datasets: [{
+                        data: consistencyData,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } } }
+            });
+
+            // 2. WEEKLY PATTERN (Real Data: day-of-week from streak)
+            const weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+            for (let i = 0; i < Math.min(curStreak, 30); i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                weeklyActivity[d.getDay()]++;
+            }
+            new Chart(document.getElementById('habit-weekly'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    datasets: [{
+                        data: weeklyActivity,
+                        backgroundColor: ['#A78BFA', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899', '#6366F1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            // Activity Heatmap cleanup
+            const oldHeatmap = document.getElementById('h-history').parentNode;
+            if (oldHeatmap) oldHeatmap.remove();
+        }
+
+        // Removed renderHabitChartsMock() completely
+
+
+
+
+        async function renderFullDashboard(user, history) {
+            // HIDE Context Specific Views if open (though logic handles this)
+            // SHOW Dashboard
+            const dash = document.createElement('div');
+            dash.id = 'view-dashboard';
+            dash.className = 'fade-in';
+            dash.style.animationDelay = '0.2s';
+
+            // 1. RISK & ALERTS LOGIC
+            const now = new Date();
+            const overdueTasks = history.tasks.filter(t => t.status !== 'completed' && new Date(t.tasks.deadline) < now);
+            const lowStreakHabits = history.habits.filter(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return !s || s.current_streak < 3; // "Broken" if less than 3 days streak
+            });
+
+            let riskLevel = 'Low';
+            let riskColor = '#10B981'; // Green
+            if (overdueTasks.length > 0 || lowStreakHabits.length > 2) {
+                riskLevel = 'Medium';
+                riskColor = '#F59E0B'; // Amber
+            }
+            if (overdueTasks.length > 2 || lowStreakHabits.length > 4) {
+                riskLevel = 'High';
+                riskColor = '#EF4444'; // Red
+            }
+
+            // 2. KPI CARDS (Refined)
+            const stats = {
+                tasksTotal: history.tasks.length,
+                tasksDone: history.tasks.filter(t => t.status === 'completed').length,
+                habitsActive: history.habits.length,
+            };
+
+            const kpiHtml = `
+            <div class="metrics-grid">
+                <div class="metric-box glass-card card-hover" style="border-left: 4px solid ${riskColor}">
+                    <div class="label">Risk Level</div>
+                    <div class="value" style="color:${riskColor}">${riskLevel.toUpperCase()}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">
+                        Based on deadline adherance
+                    </div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Attention Needed</div>
+                    <div class="value counter" data-target="${overdueTasks.length + lowStreakHabits.length}" style="color:${(overdueTasks.length + lowStreakHabits.length) > 0 ? '#EF4444' : 'var(--text-main)'}">0</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Items to Review</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Tasks Done</div>
+                    <div class="value counter" data-target="${stats.tasksDone}">0</div>
+                     <div style="font-size:0.8rem; color:var(--text-muted)">of ${stats.tasksTotal} Assigned</div>
+                </div>
+                <div class="metric-box glass-card card-hover">
+                    <div class="label">Broken Habits</div>
+                    <div class="value counter" data-target="${lowStreakHabits.length}">0</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Inactive < 3 Days</div>
+                </div>
+            </div>`;
+
+            // 3. ACTIONABLE ALERTS SECTION
+            let alertsHtml = '';
+            if (overdueTasks.length > 0) {
+                alertsHtml += `
+                <div class="glass-card" style="border-left:4px solid #EF4444; animation-delay:0.3s">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                        <h2 style="margin:0; color:#EF4444; font-size:1rem"><i class="fa-solid fa-triangle-exclamation"></i> Overdue Tasks (${overdueTasks.length})</h2>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem">
+                        ${overdueTasks.map(t => `<div style="font-size:0.9rem; display:flex; justify-content:space-between; padding:0.5rem; background:#FEF2F2; border-radius:6px"><span>${t.tasks.name}</span><span style="font-weight:600; color:#991B1B">Due ${formatDate(t.tasks.deadline)}</span></div>`).join('')}
+                    </div>
+                </div>`;
+            }
+            if (lowStreakHabits.length > 0) {
+                alertsHtml += `
+                <div class="glass-card" style="border-left:4px solid #F59E0B; animation-delay:0.4s">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                        <h2 style="margin:0; color:#B45309; font-size:1rem"><i class="fa-solid fa-link-slash"></i> Inconsistent Habits (${lowStreakHabits.length})</h2>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem">
+                         ${lowStreakHabits.map(h => `<span style="padding:4px 8px; background:#FDF6B2; color:#92400E; border-radius:4px; font-size:0.85rem">${h.habits.name}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // "Copy Report" Logic
+            const reportText = `Report for ${user.Name}:%0A- Risk Level: ${riskLevel}%0A- Overdue Tasks: ${overdueTasks.length}%0A- Broken Habits: ${lowStreakHabits.length}%0A- Tasks Completed: ${stats.tasksDone}/${stats.tasksTotal}`;
+            const copyBtn = `<button class="btn-secondary" style="margin-bottom:1rem; width:100%; padding:0.75rem; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-sm); border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-main)" onclick="navigator.clipboard.writeText(decodeURIComponent('${reportText}')); alert('Report copied to clipboard!')"><i class="fa-solid fa-copy"></i> Copy Summary Report</button>`;
+
+            // 4. CHARTS ROW
+            const chartsHtml = `
+            <div class="metrics-grid">
+                <div class="glass-card">
+                    <h2><i class="fa-solid fa-chart-pie"></i> Task Progress</h2>
+                    <div style="height:200px"><canvas id="d-chart-tasks"></canvas></div>
+                </div>
+                <div class="glass-card">
+                     <h2><i class="fa-solid fa-bolt"></i> Habit Streaks</h2>
+                     <div style="height:200px"><canvas id="d-chart-habits"></canvas></div>
+                </div>
+            </div>`;
+
+            // 5. TASKS TABLE (Staggered)
+            const tasksList = history.tasks.length ? history.tasks.map((t, i) => {
+                const isDone = t.status === 'completed';
+                const due = new Date(t.tasks.deadline);
+                const isOverdue = !isDone && due < new Date();
+                return `<div class="glass-card stagger-item" style="padding:0.75rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+                    <div>
+                        <div style="font-weight:600">${t.tasks.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted)">Due: ${formatDate(t.tasks.deadline)}</div>
+                    </div>
+                    <span class="badge" style="background:${isDone ? '#10B981' : (isOverdue ? '#EF4444' : '#4F46E5')}; color:white; padding:2px 6px; border-radius:4px; font-size:0.75rem">
+                        ${isDone ? 'DONE' : (isOverdue ? 'LATE' : 'PENDING')}
+                    </span>
+                 </div>`;
+            }).join('') : '<div style="padding:1rem; text-align:center; color:var(--text-muted)">No Tasks Assigned</div>';
+
+            const habitsList = history.habits.length ? history.habits.map(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return `<div class="glass-card stagger-item card-hover" style="text-align:center; padding:1rem">
+                     <div style="font-weight:700; margin-bottom:0.5rem">${h.habits.name}</div>
+                     <div style="font-size:1.5rem; font-weight:800; color:var(--primary)">${s ? s.current_streak : 0}</div>
+                     <div style="font-size:0.8rem; color:var(--text-muted)">Streak Days</div>
+                 </div>`;
+            }).join('') : '<div style="padding:1rem">No Habits</div>';
+
+            dash.innerHTML = `
+                ${copyBtn}
+                ${kpiHtml}
+                ${alertsHtml}
+                ${chartsHtml}
+                <div style="margin-top:2rem">
+                    <h2 class="fade-in"><i class="fa-solid fa-list-ul"></i> Assigned Tasks</h2>
+                    <div class="task-list-container">${tasksList}</div>
+                    
+                    <h2 class="fade-in" style="margin-top:2rem"><i class="fa-solid fa-repeat"></i> Active Habits</h2>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem">
+                        ${habitsList}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('main-content').appendChild(dash);
+
+            // ANIMATE COUNTERS
+            anime({
+                targets: '.counter',
+                innerHTML: [0, (el) => el.getAttribute('data-target')],
+                round: 1,
+                easing: 'easeOutExpo',
+                duration: 2000
+            });
+
+            // ANIMATE CHARTS
+            // 1. Task Status
+            new Chart(document.getElementById('d-chart-tasks'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [stats.tasksDone, stats.tasksTotal - stats.tasksDone, overdueTasks.length],
+                        backgroundColor: ['#10B981', '#4F46E5', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
+            });
+
+            // 2. Habit Streaks
+            const topHabits = history.habits.slice(0, 5).map(h => {
+                const s = history.streaks.find(x => x.habit_id === h.habit_id);
+                return { name: h.habits.name, streak: s ? s.current_streak : 0 };
+            });
+            new Chart(document.getElementById('d-chart-habits'), {
+                type: 'bar',
+                data: {
+                    labels: topHabits.map(h => h.name),
+                    datasets: [{
+                        label: 'Streak',
+                        data: topHabits.map(h => h.streak),
+                        backgroundColor: '#F59E0B',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    </script>
+
+</body>
+
+</html>
